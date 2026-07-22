@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install uv
+        run: python -m pip install "uv==0.11.31"
+      - name: Sync locked environment
+        run: python -m uv sync --locked --all-extras
+      - name: Unit and hermetic integration tests
+        run: python -m uv run --locked python -m pytest -m "not compatibility and not system_keyring"
+      - name: Lint
+        run: python -m uv run --locked python -m ruff check .
+      - name: Type check
+        run: python -m uv run --locked python -m mypy src
+      - name: Audit locked dependencies
+        run: |
+          python -m uv export --locked --all-extras --no-emit-project --format requirements-txt --output-file .audit-requirements.txt
+          python -m uvx --from "pip-audit==2.10.1" pip-audit -r .audit-requirements.txt --progress-spinner off
+      - name: Build distributions
+        run: python -m uv run --locked python -m build
+      - name: Install and smoke-test wheel
+        run: python -m uv run --locked python scripts/verify_wheel.py dist

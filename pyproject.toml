@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mr-hide"
+version = "0.1.0"
+description = "Token-aware local privacy boundary for supported coding clients"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Mr Hide contributors" }]
+dependencies = [
+  "click>=8.1,<9",
+  "httpx>=0.28,<1",
+  "keyring>=25.6,<26",
+  "packaging>=24.2,<27",
+  "starlette>=1.3.1,<2",
+  "uvicorn>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.3,<2",
+  "mypy>=1.17,<2",
+  "pytest>=9.0.3,<10",
+  "pytest-asyncio>=1.1,<2",
+  "ruff>=0.12,<1",
+]
+
+[project.scripts]
+mr-hide = "mr_hide.cli:main"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/mr_hide", "tests", "scripts", "README.md", "pyproject.toml"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mr_hide"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/mr_hide/compatibility.toml" = "mr_hide/compatibility.toml"
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+  "compatibility: requires a pinned real client package",
+  "system_keyring: requires an approved operating-system keyring service",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["mr_hide"]

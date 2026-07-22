@@ -40,7 +40,7 @@ Mr Hide addresses that specific gap without claiming to protect arbitrary source
 - **Standalone and composable proxy.** Mr Hide is independent of OCGO, Headroom, providers, and model routers. It can sit before another proxy or directly before a compatible provider. (session-settled: user-directed — chosen over building an OCGO- or Headroom-specific companion: a privacy boundary should compose with any upstream without interfering with it.)
 - **Protocol preservation instead of translation.** Mr Hide preserves the client's protocol and delegates model routing or protocol conversion to the chosen upstream. (session-settled: user-approved — chosen over becoming a general compatibility gateway: detection, substitution, restoration, and forwarding are the product's single responsibility.)
 - **Token-aware reversible aliases.** Conversational substitutions use the smallest reliable aliases selected through tokenizer measurements rather than verbose placeholders. (session-settled: user-approved — chosen over descriptive placeholders alone: privacy transformations should minimize token overhead and may reduce repeated long identifiers.)
-- **Tools remain untouched by default.** Tool definitions, arguments, results, and tool history bypass transformation unless the user selects another tool mode. (session-settled: user-directed — chosen over privacy-first transformation as the default: existing tools should keep working without unexpected mutations.)
+- **Default tool mode is outbound-transparent and locally restorative.** Tool definitions, arguments, results, and history sent toward the provider receive no detection or substitution by default. When a model-generated tool argument contains an alias already established by protected conversational text, Mr Hide restores that known alias only when it crosses back into the local execution boundary; it does not discover or transform any other tool value. (session-settled: user-approved — chosen over literal byte-for-byte passthrough in both directions: local tools should receive the real value behind a known conversational alias without implying that default-mode tool traffic is protected.)
 - **Safe tool mode is best effort.** `--safe-tool-calls` applies compact aliases to model-visible tool traffic and blocks known transformation failures without silently falling back to raw data. (session-settled: user-directed — chosen over compatibility fallbacks and policy enforcement: the user accepts that transformed tools may break.)
 - **Compatibility mode uses realistic PII surrogates.** `--tool-compatibility` uses type-valid, reversible mock values for PII, non-working stand-ins for secrets, and restores real values only inside the user's local execution boundary. (session-settled: user-directed — chosen over opaque aliases inside tools: realistic non-sensitive shapes give tools and models a better chance of preserving behavior without minting usable credentials.)
 - **Stable sequential mappings.** The same original entity receives the same substitute within a conversation; a different entity of the same type receives the next unused bank value. (session-settled: user-directed — chosen over random replacement per occurrence: referential identity must survive repeated mentions and tool round trips.)
@@ -49,6 +49,7 @@ Mr Hide addresses that specific gap without claiming to protect arbitrary source
 - **Bypass is explicit and conversation-scoped.** After a blocking privacy error, the user may accept a clear warning and bypass protection for that entire conversation; bypass is never automatic or global. (session-settled: user-directed — chosen over permanent failure or per-request approval: the user retains control without changing other conversations.)
 - **Conversations are resumable and persistent.** A resumed Codex or Claude Code conversation reuses its encrypted mapping vault and bypass state for up to 30 days after its last activity. (session-settled: user-directed — chosen over memory-only mappings: native resume workflows must preserve referential identity across process and machine restarts.)
 - **Local single-process Python product.** The supported runtime is Python 3.11 or later, with Presidio integrated into the proxy process. (session-settled: user-directed — chosen over a Go launcher with a Python sidecar or a LiteLLM/PrivAiTe extension: one Python process minimizes custom code and operational parts.)
+- **Tested client-version envelope.** Mr Hide supports explicitly tested Codex and Claude Code version ranges. An untested version is blocked with a clear compatibility warning unless the user accepts an execution-scoped override; that override never expands the advertised support range. (session-settled: user-approved — chosen over silently accepting every client update: a privacy boundary should not imply compatibility for protocol and resume behavior it has not verified.)
 - **Best-effort detection claim.** Mr Hide guarantees handling of entities it detects, not detection of every sensitive value. (session-settled: user-approved — chosen over a zero-leakage claim: Presidio explicitly cannot guarantee complete automated detection.)
 - **PII and secrets, not arbitrary intellectual property.** The privacy boundary covers supported personal-data entities and detectable technical secrets, but not complete source-code confidentiality or all proprietary information. (session-settled: user-approved — chosen over treating all code as sensitive content: concealing the codebase would prevent a coding model from working on it.)
 
@@ -87,8 +88,8 @@ Mr Hide addresses that specific gap without claiming to protect arbitrary source
 
 **Tool policies**
 
-- R18. The default mode must leave tool definitions, arguments, results, and tool history unmodified while still protecting ordinary conversational content.
-- R19. The default-mode documentation and runtime status must warn that sensitive values carried through tools can reach the inference provider unchanged.
+- R18. In default mode, tool definitions, arguments, results, and tool history sent toward the provider must receive no detection or substitution. On the provider-to-local path, Mr Hide must restore aliases already known from protected conversational content before local tool execution, without detecting or transforming any other tool value.
+- R19. The default-mode documentation and runtime status must warn that sensitive values carried toward the provider through tools can arrive unchanged and that only restoration of already-known aliases at the local execution boundary is performed.
 - R20. `--safe-tool-calls` must apply the same compact alias system to model-visible tool traffic and must not fall back to raw tool data after a known privacy-processing failure.
 - R21. `--safe-tool-calls` must be presented as best effort and may break tools whose identifiers, paths, commands, schemas, or values cannot tolerate substitution.
 - R22. `--tool-compatibility` must replace PII with realistic, type-valid, non-sensitive surrogates and secrets with non-working stand-ins across conversation and model-visible tool traffic.
@@ -114,6 +115,7 @@ Mr Hide addresses that specific gap without claiming to protect arbitrary source
 - R36. Installing the Python package must provide the Mr Hide CLI and its declared dependencies through standard Python package tooling.
 - R37. Runtime logs and telemetry must exclude original sensitive values, mapping contents, credentials, and unredacted request or response bodies.
 - R38. The project must provide automated Windows and Linux coverage for the privacy boundary and both supported client contracts before an MVP release is considered usable.
+- R39. Mr Hide must maintain and report explicitly tested Codex and Claude Code version ranges, block an untested client version by default, and permit only a clearly warned execution-scoped override that does not mark the version as supported.
 
 ### Privacy and Data Flow
 
@@ -153,8 +155,8 @@ The requirements remain authoritative for the exact behavior of each mode.
 - F3. Default tool execution
   - **Trigger:** The model emits or consumes tool traffic while no tool-specific flag is active.
   - **Actors:** A2, A3, A4, A5.
-  - **Steps:** Mr Hide protects eligible conversational content but passes tool definitions, calls, arguments, results, and history without substitution.
-  - **Outcome:** Existing tool behavior is preserved and the user remains informed that tool-carried data is outside the default privacy boundary.
+  - **Steps:** Mr Hide protects eligible conversational content, leaves provider-bound tool traffic unprotected, and restores only previously established conversational aliases in model-generated tool arguments as they cross into local execution.
+  - **Outcome:** A local tool receives the real value behind a known alias, while all other tool-carried data remains outside the default privacy boundary and the user is visibly informed of that limitation.
   - **Covers:** R18-R19.
 - F4. Safe tool execution
   - **Trigger:** The client runs with `--safe-tool-calls`.
@@ -184,9 +186,9 @@ The requirements remain authoritative for the exact behavior of each mode.
   - **Then:** Every model-visible occurrence uses one stable measured alias, the user sees the original name, and the token report does not claim savings unless measurement supports them.
 - AE2. Default tool compatibility
   - **Covers:** R18-R19.
-  - **Given:** A tool argument contains a path or identifier that Presidio would otherwise classify.
+  - **Given:** Provider-bound tool traffic contains a path Presidio would otherwise classify, and a later model-generated tool argument contains an alias already established in protected conversation text.
   - **When:** Neither tool flag is active.
-  - **Then:** The argument remains byte-for-byte unchanged and the active-mode status makes the privacy limitation visible.
+  - **Then:** The provider-bound path remains byte-for-byte unchanged, the known alias is restored only before local execution, unrelated tool values are not transformed, and the active-mode status makes the privacy limitation visible.
 - AE3. Safe tool failure
   - **Covers:** R20-R21, R31-R33.
   - **Given:** Compact substitution makes a tool call invalid or privacy processing reports an error.
@@ -217,16 +219,22 @@ The requirements remain authoritative for the exact behavior of each mode.
   - **Given:** The user already has working Codex and Claude Code configuration.
   - **When:** The user launches and exits either client through Mr Hide.
   - **Then:** The original configuration remains unchanged and launching the client normally continues to use its previous setup.
+- AE9. Untested client version
+  - **Covers:** R39.
+  - **Given:** The installed Codex or Claude Code version is outside Mr Hide's tested compatibility range.
+  - **When:** The user launches that client through Mr Hide.
+  - **Then:** Launch is blocked with the detected and supported versions; an explicit override applies only to that execution, remains visibly unsupported, and does not alter the published compatibility range.
 
 ### Success Criteria
 
 - Every entity detected in the supported request fields is absent in original form from captured upstream test traffic unless that conversation is visibly in bypass.
 - Every mapped value in supported non-bypass responses and compatibility-mode tool boundaries restores exactly to its conversation-specific original.
 - Codex and Claude Code complete representative text, SSE streaming, tool-call, tool-result, error, and resume scenarios on both Windows and Linux.
-- Default tool mode shows no tool-payload mutation; both opt-in modes satisfy their documented privacy and failure behavior.
+- Default tool mode shows no provider-bound tool protection and only restores established aliases at the local execution boundary; both opt-in modes satisfy their documented privacy and failure behavior.
 - Alias benchmarks record token counts for supported-client tokenizers and select compact defaults without claiming universal savings.
 - Installation and launch require Python but no separate Presidio service, Docker deployment, or permanent client reconfiguration.
 - Logs and diagnostics from all acceptance scenarios contain no original protected values or vault contents.
+- Supported client ranges are generated from passing compatibility fixtures, and an untested version cannot enter a protected launch without an explicit execution-scoped override.
 
 ### Scope Boundaries
 
