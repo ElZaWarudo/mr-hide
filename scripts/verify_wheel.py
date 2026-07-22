@@ -9,6 +9,8 @@ import tempfile
 import venv
 from pathlib import Path
 
+INSTALL_TIMEOUT_SECONDS = 600
+
 
 def verify_wheel(distribution_directory: Path) -> None:
     wheels = tuple(distribution_directory.glob("mr_hide-*.whl"))
@@ -24,13 +26,18 @@ def verify_wheel(distribution_directory: Path) -> None:
         subprocess.run(
             (str(python), "-m", "pip", "install", str(wheels[0])),
             check=True,
-            timeout=180,
+            timeout=INSTALL_TIMEOUT_SECONDS,
         )
         console_version = _output(command, "--version")
         module_version = _output(python, "-m", "mr_hide", "--version")
         if console_version != module_version:
             raise RuntimeError("Console and module version output differ.")
         _output(command, "compatibility", "--json-output")
+        _output(
+            python,
+            "-c",
+            "from mr_hide.privacy import MappingTable; assert MappingTable().records == ()",
+        )
 
 
 def _output(command: Path, *args: str) -> str:
