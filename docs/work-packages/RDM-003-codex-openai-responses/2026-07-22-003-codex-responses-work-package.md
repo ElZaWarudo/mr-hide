@@ -44,7 +44,7 @@ Protect the exact OpenAI Responses JSON/SSE surfaces used by supported Codex ver
 | Review unit | Status | Evidence |
 |---|---|---|
 | RU1 | ready-local-merge | 36 focused protocol tests; 272 tests on Python 3.13 and 267 on Python 3.11; Ruff, strict mypy, build, clean-wheel smoke, and leakage scan passed. No P0-P2 finding remains. |
-| RU2 | pending | Starts after RU1 local merge. |
+| RU2 | ready-local-merge | Protected JSON/SSE, hashed native launch/resume binding, all tool policies, bypass visibility, 291 Python 3.13 tests, 286 Python 3.11 tests, and pinned Codex 0.144.4 Windows launch/resume passed. Ruff, strict mypy, YAML/evidence drift, build, and clean-wheel smoke passed; no P0-P2 finding remains. |
 
 ## Reviewability Diagnosis
 

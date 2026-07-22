@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-003 RU1 local release gate
-- Result: RDM-001 and RDM-002 are locally integrated. RDM-003 RU1 implements reviewed, bounded OpenAI Responses JSON/SSE transformations and has passed its verification, security, and adversarial gates; it is ready for a local-only merge into `develop`.
+- Phase: RDM-003 RU2 local release gate
+- Result: RDM-001, RDM-002, and RDM-003 RU1 are locally integrated. RU2 binds supported Codex launch/resume traffic to encrypted conversations, applies the reviewed Responses transformers through the proxy, and has passed its local verification, security, adversarial, and real-client gates; it is ready for a local-only merge into `develop`.
 - Primary artifact: `docs/plans/2026-07-22-003-feat-codex-openai-responses-protection-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -150,9 +150,16 @@ review_threshold: P0-P2
 - RDM-003 RU1 streaming result: arbitrary transport chunking, LF/CRLF frames, delta/done aggregation, strict function/MCP argument JSON, output/content/reasoning/error events, and ordered withholding are covered. A malformed, incomplete, mismatched, or oversized eligible stream emits no partial transformed output.
 - RDM-003 RU1 review result: the implementation includes transactional whole-body requirements for RU2 composition, strict known-event typing, complete added/done event handling, post-transform expansion limits, and leakage regressions. The only sentinel scan match is an intentional exception payload whose test proves it is absent from the public error. No P0-P2 finding remains.
 - RDM-003 RU1 verification result: 36 focused protocol tests passed; the full Python 3.13 suite passed 272 tests with one POSIX-only skip and four compatibility deselections; the Python 3.11 suite passed 267 tests with one skip and nine deselections. Ruff, strict mypy over 45 source files, `git diff --check`, sdist/wheel build, and clean-wheel import smoke passed.
+- RDM-003 RU1 local release result: four reviewed commits (`64ff225`, `1104f02`, `dcc3959`, `7c4939d`) were rebased onto `develop` and merged locally with `--no-ff` as `9f9e7c0`. No push, PR, Jira mutation, reviewer notification, or remote merge occurred.
+- RDM-003 RU2 implementation result: Codex requests require a canonical native prompt-cache/session UUID, store only a client-scoped SHA-256 binding key, and reuse exactly one encrypted vault on explicit resume. New launches receive fresh conversation UUIDs. Request JSON is transformed and committed before upstream; response JSON/SSE is bounded, restored, and committed only after complete success. Anthropic routes retain raw forwarding.
+- RDM-003 RU2 policy/CLI result: `default`, `safe-tool-calls`, and `tool-compatibility` are execution-visible; default warns `tool-data-unprotected`; bypass requires explicit warning acceptance and remains visible after resume. A resumed vault rejects substitution-mode changes before activity refresh.
+- RDM-003 RU2 review result: confirmed P1/P2 issues were fixed for incomplete Codex SSE fixture sequencing, resume options before the UUID, ambiguous `resume --last`, hidden persisted bypass state, policy-mode changes after resume, compatibility-test state/keyring contamination, and missing Linux Secret Service setup. No P0-P2 finding remains.
+- RDM-003 RU2 verification result: the full Python 3.13 suite passed 291 tests with one POSIX-only skip and four compatibility deselections; the hermetic Python 3.11 suite passed 286 tests with one skip and nine deselections; a 76-test focused gate passed. Ruff, strict mypy over 47 source files, workflow YAML parsing, generated-evidence drift, `git diff --check`, sdist/wheel build, and clean-wheel imports passed.
+- RDM-003 RU2 compatibility result: pinned native Codex `0.144.4` passed protected Windows launch plus explicit native resume against protocol-shaped local Responses SSE, isolated client/state directories, a test-scoped OS-keyring service, and a dummy credential. Codex `0.145.0` plus Windows/Linux cells remain encoded in the exact-version compatibility workflow and are not newly claimed as locally rerun after privacy integration.
+- RDM-003 RU2 dependency audit result: the project dependency declarations and lock are unchanged from the clean exported-lock audit. A local environment audit reported only six advisories against bootstrap `pip 25.2`; pip is not declared by the project or shipped in its wheel. The two pinned spaCy model wheels are outside PyPI audit resolution.
 
 ## Exact Next Invocation
 
 ```text
-Commit, rebase, and merge reviewed RDM-003 RU1 locally into `develop`, then create `codex/codex-responses-runtime` and implement RU2 conversation binding plus proxy/CLI integration. Do not push or create a PR.
+Commit, rebase, and merge reviewed RDM-003 RU2 locally into `develop`, then begin the RDM-004 Anthropic Messages planning gate. Do not push or create a PR.
 ```
