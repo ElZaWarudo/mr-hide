@@ -7,6 +7,7 @@ from packaging.version import Version
 from mr_hide import __version__
 from mr_hide.cli import cli
 from mr_hide.compatibility import VersionCheck
+from mr_hide.runtime.models import SupervisorResult
 
 
 def supported_check(client: str, **_kwargs: object) -> VersionCheck:
@@ -103,6 +104,15 @@ def test_cli_rejects_client_endpoint_conflict(monkeypatch: pytest.MonkeyPatch) -
 def test_preflight_never_echoes_upstream_query(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("mr_hide.cli.check_client_version", supported_check)
 
+    async def supervised(**_kwargs: object) -> SupervisorResult:
+        return SupervisorResult(
+            exit_code=0,
+            endpoint="http://127.0.0.1:40123",
+            resume_identity=None,
+        )
+
+    monkeypatch.setattr("mr_hide.cli.supervise_launch", supervised)
+
     result = CliRunner().invoke(
         cli,
         [
@@ -113,6 +123,33 @@ def test_preflight_never_echoes_upstream_query(monkeypatch: pytest.MonkeyPatch) 
         ],
     )
 
-    assert result.exit_code == 1
-    assert "explicit upstream" in result.output
+    assert result.exit_code == 0
     assert "UPSTREAM_SECRET_SENTINEL" not in result.output
+
+
+def test_cli_propagates_supervised_child_exit_code(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("mr_hide.cli.check_client_version", supported_check)
+
+    async def supervised(**_kwargs: object) -> SupervisorResult:
+        return SupervisorResult(
+            exit_code=23,
+            endpoint="http://127.0.0.1:40124",
+            resume_identity="native-session",
+        )
+
+    monkeypatch.setattr("mr_hide.cli.supervise_launch", supervised)
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "claude",
+            "--upstream",
+            "https://api.example.test",
+            "--",
+            "--resume",
+            "native-session",
+        ],
+    )
+
+    assert result.exit_code == 23
+    assert result.output == ""
