@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-001 RU3 local release gate
-- Result: RU1 and RU2 were merged locally into `develop` at `06120c9` and `bb9f079`; RU3 implementation, verification, code review, and security review are complete on `codex/cross-platform-compatibility-evidence`, with local integration in progress.
+- Phase: RDM-002 artifact gate
+- Result: RDM-001 is complete. RU1, RU2, and RU3 were merged locally into `develop` at `06120c9`, `bb9f079`, and `8494c90`; no remote mutation occurred.
 - Primary artifact: `docs/plans/2026-07-22-001-feat-executable-privacy-proxy-foundation-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -26,8 +26,8 @@ review_threshold: P0-P2
 
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
-- Integration base: local `develop` at `bb9f079`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
-- Active implementation branch: `codex/cross-platform-compatibility-evidence`, created from local `develop` after the RU2 merge
+- Integration base: local `develop` at `8494c90`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
+- Active implementation branch: `codex/rdm-001-closeout`, containing only the post-merge state reconciliation
 - Working tree before this resume: clean at `ba09b20`; this artifact run adds/updates orchestration documents only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
@@ -48,7 +48,7 @@ review_threshold: P0-P2
 | work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RU1, RU2, and RU3 complete |
 | code review | `compound-engineering:ce-code-review` | RU1, RU2, and RU3 passed after local fixes |
 | security review | `krt-security-sentinel` | RU1, RU2, and RU3 passed |
-| release | `krt-release-marshal` adapted to the user-mandated local-only flow | RU1 and RU2 locally merged; RU3 pending local integration |
+| release | `krt-release-marshal` adapted to the user-mandated local-only flow | RDM-001 fully merged locally |
 
 ## Context Readiness
 
@@ -120,9 +120,10 @@ review_threshold: P0-P2
 - RU3 verification result: 87 hermetic core tests passed on lock-resolved Python 3.11 and 3.13; four real-client Windows cells passed; the actual Windows Credential Locker probe passed; focused keyring/evidence coverage passed 13 tests; Ruff, strict mypy, YAML parsing, generated-doc drift, build, and wheel-content checks passed.
 - RU3 review finding: backend discovery exceptions could escape the redacted `doctor` contract. The failure is now caught and reported as `unavailable; probe-failed`, with a regression test. No credential value or exception detail is emitted.
 - RU3 code/security review result: passed with no remaining P0-P2 findings. The external cross-model additive pass was unavailable without invoking a live provider and was not required for the local gate.
+- RU3 local release result: three reviewed commits (`cca91f4`, `3d11d4c`, `5bdf422`) were rebased onto `develop` and merged locally with `--no-ff` as `8494c90`. No push, PR, Jira mutation, reviewer notification, or remote merge occurred.
 
 ## Exact Next Invocation
 
 ```text
-Finish the RU3 code/security review, commit the verified changes on `codex/cross-platform-compatibility-evidence`, rebase onto local `develop`, and merge locally with `--no-ff`. Then advance Compound Master to RDM-002. Do not push or create a PR.
+Create and review the RDM-002 requirements, implementation plan, and work package from the accepted initiative contract, then implement its review units on local feature branches targeting `develop`. Do not push or create a PR.
 ```
