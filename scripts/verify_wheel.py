@@ -36,7 +36,14 @@ def verify_wheel(distribution_directory: Path) -> None:
         _output(
             python,
             "-c",
-            "from mr_hide.privacy import MappingTable; assert MappingTable().records == ()",
+            (
+                "from importlib.resources import files; "
+                "from mr_hide.privacy import MappingTable; "
+                "from mr_hide.state import VaultCodec, VaultRepository; "
+                "assert MappingTable().records == (); "
+                "assert VaultCodec and VaultRepository; "
+                "assert files('mr_hide').joinpath('py.typed').is_file()"
+            ),
         )
 
 
