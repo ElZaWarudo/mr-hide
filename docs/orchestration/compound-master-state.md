@@ -17,18 +17,18 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-003 RU2 local release gate
-- Result: RDM-001, RDM-002, and RDM-003 RU1 are locally integrated. RU2 binds supported Codex launch/resume traffic to encrypted conversations, applies the reviewed Responses transformers through the proxy, and has passed its local verification, security, adversarial, and real-client gates; it is ready for a local-only merge into `develop`.
-- Primary artifact: `docs/plans/2026-07-22-003-feat-codex-openai-responses-protection-plan.md`
+- Phase: RDM-004 RU1 local release gate
+- Result: RDM-001 through RDM-003 are locally integrated. RDM-004 RU1 strict Anthropic Messages/count JSON and SSE transformers are implemented, reviewed, and verified; the remaining action is the authorized local rebase and merge before RU2.
+- Primary artifact: `docs/plans/2026-07-22-004-feat-claude-anthropic-messages-protection-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
 ## Preflight
 
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
-- Integration base: local `develop` at `89b9487`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
-- Active artifact/implementation branch: `codex/responses-protocol-transformers`, created from local `develop` after the RDM-002 closeout
-- Working tree before RDM-003 artifacts: clean at `89b9487`; the current diff is limited to the RDM-003 plan, package, and orchestration state
+- Integration base: local `develop` at `af00f04`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
+- Active artifact/implementation branch: `codex/anthropic-messages-protection`, created from local `develop` after the RDM-003 closeout
+- Working tree at the RU1 release gate: reviewed RDM-004 Messages transformer source, tests, wheel smoke, work-package evidence, and orchestration state only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
@@ -71,7 +71,9 @@ review_threshold: P0-P2
 | RDM-002 work package | `docs/work-packages/RDM-002-reversible-privacy-conversation-core/2026-07-22-002-reversible-privacy-core-work-package.md` | bundled checker passed; three serial local review units |
 | RDM-003 implementation plan | `docs/plans/2026-07-22-003-feat-codex-openai-responses-protection-plan.md` | implementation-ready; inline document review passed |
 | RDM-003 work package | `docs/work-packages/RDM-003-codex-openai-responses/2026-07-22-003-codex-responses-work-package.md` | bundled checker passed; RU1 selected before RU2 runtime integration |
-| Later plans/packages | not created | dependency-ordered after RDM-003 gate |
+| RDM-004 implementation plan | `docs/plans/2026-07-22-004-feat-claude-anthropic-messages-protection-plan.md` | implementation-ready; inline review passed |
+| RDM-004 work package | `docs/work-packages/RDM-004-claude-anthropic-messages/2026-07-22-004-claude-messages-work-package.md` | two serial local review units; RU1 selected |
+| Later plans/packages | not created | dependency-ordered after RDM-004 gate |
 
 ## Blockers And Required Decisions
 
@@ -157,9 +159,17 @@ review_threshold: P0-P2
 - RDM-003 RU2 verification result: the full Python 3.13 suite passed 291 tests with one POSIX-only skip and four compatibility deselections; the hermetic Python 3.11 suite passed 286 tests with one skip and nine deselections; a 76-test focused gate passed. Ruff, strict mypy over 47 source files, workflow YAML parsing, generated-evidence drift, `git diff --check`, sdist/wheel build, and clean-wheel imports passed.
 - RDM-003 RU2 compatibility result: pinned native Codex `0.144.4` passed protected Windows launch plus explicit native resume against protocol-shaped local Responses SSE, isolated client/state directories, a test-scoped OS-keyring service, and a dummy credential. Codex `0.145.0` plus Windows/Linux cells remain encoded in the exact-version compatibility workflow and are not newly claimed as locally rerun after privacy integration.
 - RDM-003 RU2 dependency audit result: the project dependency declarations and lock are unchanged from the clean exported-lock audit. A local environment audit reported only six advisories against bootstrap `pip 25.2`; pip is not declared by the project or shipped in its wheel. The two pinned spaCy model wheels are outside PyPI audit resolution.
+- RDM-003 RU2 local release result: four reviewed commits (`de898f6`, `a07823e`, `1b6cc0b`, `b922eae`) were rebased onto `develop` and merged locally with `--no-ff` as `af00f04`. RDM-003 is complete; no push, PR, Jira mutation, reviewer notification, or remote merge occurred.
+- RDM-004 artifact result: official Anthropic Messages, streaming, token-counting, and Claude Code CLI references ground the explicit JSON/SSE matrix and the documented canonical `--session-id` launch mechanism. New sessions can be bound before process start; ambiguous picker/name/continue forms remain unsupported and fail closed.
+- RDM-004 plan review result: passed inline under the repository's sequential-agent rule. The design keeps protocol field knowledge out of the provider-neutral transaction, applies the same protected representation to count requests, withholds partial tool JSON until `content_block_stop`, and rejects session conflicts before child launch.
+- RDM-004 package result: two serial units isolate pure bounded Messages/count/SSE parsers from shared-transaction extraction, Claude binding, proxy/CLI composition, and compatibility evidence.
+- RDM-004 RU1 implementation result: strict duplicate-safe and non-finite-safe JSON transforms cover declared Anthropic system, message text, tool use/result, document, search-result, tool-definition, response text/tool, and error surfaces while preserving binary, thinking, metadata, and unknown structures as opaque data. Token-count requests reuse the same request transform without introducing provider state.
+- RDM-004 RU1 streaming result: bounded whole-stream withholding supports LF/CRLF framing, arbitrary transport chunks, declared event/type matching, indexed content-block lifecycles, text-delta aggregation, and strict partial tool-input JSON aggregation. Unknown events remain byte-exact, and malformed, incomplete, oversized, mismatched, or out-of-order eligible streams emit no transformed prefix.
+- RDM-004 RU1 review result: an adversarial pass found that accumulated `input_json_delta.partial_json` needed its own pre-transform byte, Unicode, and depth constraints. The implementation and a deep-partial regression now enforce those bounds before recursive tool transformation. No P0-P2 finding remains.
+- RDM-004 RU1 verification result: 23 focused Messages tests and 66 combined Messages/Responses protocol tests passed. The full Python 3.13 suite passed 314 tests with one POSIX-only skip and four compatibility deselections; Python 3.11 passed 309 tests with one skip and nine deselections. Ruff, strict mypy over 50 source files, `git diff --check`, sdist/wheel build, and clean-wheel protocol import smoke passed.
 
 ## Exact Next Invocation
 
 ```text
-Commit, rebase, and merge reviewed RDM-003 RU2 locally into `develop`, then begin the RDM-004 Anthropic Messages planning gate. Do not push or create a PR.
+Commit the reviewed RDM-004 RU1 implementation, rebase `codex/anthropic-messages-protection` onto local `develop`, merge it locally with `--no-ff`, then create `codex/claude-messages-runtime` for RU2. Do not push or create a PR.
 ```
