@@ -8,6 +8,7 @@ from mr_hide import __version__
 from mr_hide.cli import cli
 from mr_hide.compatibility import VersionCheck
 from mr_hide.runtime.models import SupervisorResult
+from mr_hide.security import KeyringCapability
 
 
 def supported_check(client: str, **_kwargs: object) -> VersionCheck:
@@ -72,12 +73,17 @@ def test_doctor_reports_credential_presence_without_values(
         "mr_hide.cli.check_client_version",
         supported_check,
     )
+    monkeypatch.setattr(
+        "mr_hide.cli.probe_keyring",
+        lambda: KeyringCapability(True, "approved.Backend", "available"),
+    )
 
     result = CliRunner().invoke(cli, ["doctor"])
 
     assert result.exit_code == 0
     assert "OPENAI_API_KEY: present" in result.output
     assert "ANTHROPIC_API_KEY: present" in result.output
+    assert "secure_store: available (approved.Backend; available)" in result.output
     assert "OPENAI_SECRET_SENTINEL" not in result.output
     assert "ANTHROPIC_SECRET_SENTINEL" not in result.output
 

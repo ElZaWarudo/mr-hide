@@ -28,7 +28,7 @@ class CodexAdapter(ClientAdapter):
             argv=(
                 executable,
                 "--config",
-                f'openai_base_url="{endpoint}"',
+                f'openai_base_url="{endpoint}/v1"',
                 *args,
             ),
             client_args=args,

@@ -47,7 +47,7 @@ def test_codex_uses_one_run_config_and_preserves_codex_home() -> None:
     assert spec.argv == (
         "codex",
         "--config",
-        'openai_base_url="http://127.0.0.1:40001"',
+        'openai_base_url="http://127.0.0.1:40001/v1"',
         "resume",
         "session-123",
     )

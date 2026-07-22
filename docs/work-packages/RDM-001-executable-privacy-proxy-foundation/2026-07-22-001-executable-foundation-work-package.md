@@ -97,8 +97,8 @@ Grouping rationale:
 | Review unit | Status | Evidence |
 |---|---|---|
 | RU1 (U1 + U2) | merged-locally | Merged into local `develop` as `06120c9`; no remote mutation occurred. |
-| RU2 (U3 + U4) | ready-local-merge | Implementation, code review, security review, Python 3.11/3.13 tests, lint, types, build, and wheel smoke passed on `codex/local-streaming-proxy-runtime`. |
-| RU3 (U5 + U6) | pending | Starts after RU2 and retains the real-client/system-keyring support gate. |
+| RU2 (U3 + U4) | merged-locally | Merged into local `develop` as `bb9f079`; no remote mutation occurred. |
+| RU3 (U5 + U6) | ready-local-merge | Implementation, verification, code review, and security review passed after fixing redacted backend-discovery failure handling. |
 
 Delivery policy: local merges only. Each review unit is committed on its semantic feature branch, rebased onto local `develop`, and merged locally after its gates pass. Do not push branches, create PRs, mutate Jira, notify reviewers, or merge remotely.
 
@@ -127,7 +127,7 @@ Delivery policy: local merges only. Each review unit is committed on its semanti
 - Consumers found: only current planning/orchestration documents; the repository is greenfield.
 - Contract-drift tests searched: exact CLI help/argument behavior, supported-version boundaries, generated-doc drift, route allowlist, hop-by-hop headers, diagnostic sentinel exclusions, approved backend types, and matrix boundary versions.
 - Required consumer tests: every test file named above plus README/compatibility command smoke checks.
-- Consumer tests run/skipped: RU1 completed with 45 passing tests on lock-resolved Python 3.11.15 and 3.13.7, plus Ruff, strict mypy, build, clean-wheel smoke, dependency audit, and an actual local Codex 0.144.4 doctor probe. RU2 completed with 77 hermetic tests on lock-resolved Python 3.11 and 3.13, Ruff, strict mypy, build, and clean-wheel smoke; focused post-review proxy/lifecycle coverage passed 25 tests. Actual Claude, Linux real-client, and system-keyring jobs remain assigned to RU3.
+- Consumer tests run/skipped: RU1 completed with 45 passing tests on lock-resolved Python 3.11.15 and 3.13.7. RU2 completed with 77 hermetic tests on Python 3.11 and 3.13. RU3 completed 87 hermetic core tests on Python 3.11 and 3.13; four exact real-client Windows cells; the actual Windows Credential Locker probe; and 13 focused keyring/evidence tests. Linux system-keyring and real-client cells are defined in SHA-pinned workflows but are not claimed as locally executed.
 
 ## Verification Gate
 
@@ -149,7 +149,7 @@ Delivery policy: local merges only. Each review unit is committed on its semanti
 - Security Watch during work: enabled. Watch header/auth redaction, URL validation, loopback enforcement, ambient proxy bypass, raw-body logging, subprocess injection/cleanup, manifest overrides, keyring downgrade, fixture/artifact leakage, and dependency supply chain.
 - Security Watch notes: use synthetic sentinels; never print env values or bodies; no shell interpolation; no non-loopback bind; no file-keyring fallback; no live credentials/providers.
 - Security reviewer: `krt-security-sentinel` after code-review fixes.
-- Security review result: RU1 and RU2 passed with no remaining P0-P2 findings. RU2 verified loopback/exclusive binding, explicit upstream validation, ambient-proxy and redirect disablement, TLS defaults, header filtering, secret/body non-logging, shell-free child launch, owned-tree cleanup, and failure/cancellation release. RU3 retains its own keyring and compatibility-evidence security gate.
+- Security review result: all three review units passed with no remaining P0-P2 findings. RU3 verifies exact-type backend allowlisting, no fallback, random synthetic credentials, cleanup on every probe path, redacted failures, isolated real-client configuration, dummy provider credentials, no request-body capture, no live-provider dependency, SHA-pinned actions, and explicitly limited support claims. One P2 backend-discovery exception path was fixed and regression-tested.
 - Required security verification: diagnostic/evidence sentinel scans, URL/header policy tests, untrusted argv tests, weak-backend rejection, system keyring cleanup, dependency audit where tooling is available.
 
 ## CI Break-Prevention And Escalation

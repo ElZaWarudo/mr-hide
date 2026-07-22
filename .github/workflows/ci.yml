@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [develop, master]
   pull_request:
 
 permissions:
@@ -40,3 +40,34 @@ jobs:
         run: python -m uv run --locked python -m build
       - name: Install and smoke-test wheel
         run: python -m uv run --locked python scripts/verify_wheel.py dist
+
+  system-keyring-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        run: python -m pip install "uv==0.11.31"
+      - name: Verify Windows Credential Locker
+        run: python -m uv run --locked --all-extras python -m pytest tests/integration/test_system_keyring.py -m system_keyring
+
+  system-keyring-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+      - name: Install Secret Service runtime
+        run: sudo apt-get update && sudo apt-get install --yes dbus-x11 gnome-keyring
+      - name: Install uv
+        run: python -m pip install "uv==0.11.31"
+      - name: Verify isolated Secret Service
+        shell: bash
+        run: |
+          dbus-run-session -- bash -euo pipefail -c '
+            printf "test-password\n" | gnome-keyring-daemon --unlock
+            python -m uv run --locked --all-extras python -m pytest tests/integration/test_system_keyring.py -m system_keyring
+          '

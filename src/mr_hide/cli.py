@@ -17,6 +17,7 @@ from mr_hide.diagnostics import environment_presence
 from mr_hide.proxy import ProxyConfigurationError, validate_upstream_url
 from mr_hide.runtime.models import SupervisorError
 from mr_hide.runtime.supervisor import supervise_launch
+from mr_hide.security import probe_keyring
 
 
 class ExplicitBoundaryCommand(click.Command):
@@ -161,6 +162,11 @@ def doctor() -> None:
             click.echo(f"{client}: {error}")
     for item in environment_presence(os.environ):
         click.echo(f"{item.name}: {'present' if item.present else 'absent'}")
+    capability = probe_keyring()
+    click.echo(
+        f"secure_store: {'available' if capability.supported else 'unavailable'} "
+        f"({capability.backend}; {capability.reason})"
+    )
 
 
 def main() -> None:
