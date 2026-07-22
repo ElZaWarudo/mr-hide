@@ -7,7 +7,6 @@ import json
 import os
 from collections.abc import Sequence
 from typing import Any
-from urllib.parse import urlsplit
 
 import click
 
@@ -15,6 +14,7 @@ from mr_hide import __version__
 from mr_hide.clients import LaunchConflict, get_adapter
 from mr_hide.compatibility import CompatibilityError, check_client_version, load_manifest
 from mr_hide.diagnostics import environment_presence
+from mr_hide.proxy import ProxyConfigurationError, validate_upstream_url
 from mr_hide.runtime.models import SupervisorError
 from mr_hide.runtime.supervisor import supervise_launch
 
@@ -34,16 +34,10 @@ def cli() -> None:
 
 
 def _upstream_url(_ctx: click.Context, _param: click.Parameter, value: str) -> str:
-    parsed = urlsplit(value)
-    if (
-        parsed.scheme not in {"http", "https"}
-        or parsed.hostname is None
-        or parsed.username is not None
-        or parsed.password is not None
-        or parsed.fragment
-    ):
-        raise click.BadParameter("must be an http(s) URL without userinfo or a fragment")
-    return value
+    try:
+        return validate_upstream_url(value)
+    except ProxyConfigurationError as error:
+        raise click.BadParameter(str(error)) from error
 
 
 def _launch_options(function: Any) -> Any:

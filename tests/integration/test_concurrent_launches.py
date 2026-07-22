@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from mr_hide.clients.claude import ClaudeAdapter
+from mr_hide.runtime.models import SupervisorResult
 from mr_hide.runtime.supervisor import supervise_launch
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "fake_client.py"
@@ -18,7 +19,7 @@ FIXTURE = Path(__file__).parents[1] / "fixtures" / "fake_client.py"
 async def test_concurrent_launches_keep_endpoints_and_state_isolated(tmp_path: Path) -> None:
     records = (tmp_path / "first.json", tmp_path / "second.json")
 
-    async def launch(record: Path, identity: str) -> object:
+    async def launch(record: Path, identity: str) -> SupervisorResult:
         return await supervise_launch(
             adapter=ClaudeAdapter(),
             executable=sys.executable,

@@ -18,7 +18,9 @@ class ProxyConfigurationError(ValueError):
     """Raised when proxy configuration could alter or expose the upstream boundary."""
 
 
-def _validated_upstream(value: str) -> httpx.URL:
+def validate_upstream_url(value: str) -> str:
+    """Validate the shared CLI/runtime upstream boundary without echoing its value."""
+
     parsed = urlsplit(value)
     if (
         parsed.scheme not in {"http", "https"}
@@ -30,7 +32,7 @@ def _validated_upstream(value: str) -> httpx.URL:
         raise ProxyConfigurationError(
             "The upstream must be an HTTP(S) URL without userinfo or a fragment."
         )
-    return httpx.URL(value)
+    return value
 
 
 def _default_client() -> httpx.AsyncClient:
@@ -48,7 +50,7 @@ def create_proxy_app(
 ) -> Starlette:
     """Create one proxy instance with a lifespan-scoped upstream client."""
 
-    upstream_url = _validated_upstream(upstream)
+    upstream_url = httpx.URL(validate_upstream_url(upstream))
 
     @asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
