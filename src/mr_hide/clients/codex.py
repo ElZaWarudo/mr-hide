@@ -7,6 +7,20 @@ from collections.abc import Mapping, Sequence
 from mr_hide.clients.base import ClientAdapter, LaunchConflict, LaunchSpec
 
 _CODEX_ENDPOINT_KEYS = ("openai_base_url", "base_url")
+_RESUME_OPTIONS_WITH_VALUE = {
+    "-c",
+    "--config",
+    "--enable",
+    "--disable",
+    "-i",
+    "--image",
+    "-m",
+    "--model",
+    "--sandbox",
+    "--output-schema",
+    "-o",
+    "--output-last-message",
+}
 
 
 class CodexAdapter(ClientAdapter):
@@ -41,9 +55,19 @@ class CodexAdapter(ClientAdapter):
         for index, value in enumerate(args):
             if value != "resume":
                 continue
-            identity_index = index + 1
-            if identity_index < len(args) and not args[identity_index].startswith("-"):
-                return args[identity_index]
+            candidate_index = index + 1
+            while candidate_index < len(args):
+                candidate = args[candidate_index]
+                if candidate in {"--last", "--"}:
+                    return None
+                option_name = candidate.partition("=")[0]
+                if option_name in _RESUME_OPTIONS_WITH_VALUE:
+                    candidate_index += 1 if "=" in candidate else 2
+                    continue
+                if candidate.startswith("-"):
+                    candidate_index += 1
+                    continue
+                return candidate
             return None
         return None
 

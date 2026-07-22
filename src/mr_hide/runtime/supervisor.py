@@ -12,6 +12,7 @@ import uvicorn
 from starlette.applications import Starlette
 
 from mr_hide.clients.base import ClientAdapter
+from mr_hide.protocols.responses.handler import ResponsesRuntime
 from mr_hide.proxy.app import create_proxy_app
 from mr_hide.runtime.models import ProxyRuntimeError, ProxyStartupError, SupervisorResult
 from mr_hide.runtime.processes import OwnedProcess, start_owned_process, terminate_owned_process
@@ -84,10 +85,11 @@ async def supervise_launch(
     startup_timeout: float = 10.0,
     shutdown_timeout: float = 5.0,
     server_serve: ProxyServerServe = serve_uvicorn,
+    responses_runtime: ResponsesRuntime | None = None,
 ) -> SupervisorResult:
     """Run a configured client only while its loopback proxy remains healthy."""
 
-    app = create_proxy_app(upstream)
+    app = create_proxy_app(upstream, responses_runtime=responses_runtime)
     target = reserve_loopback_target()
     ready = asyncio.Event()
     stop = asyncio.Event()
