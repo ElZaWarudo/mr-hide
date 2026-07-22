@@ -1,5 +1,6 @@
 """Authenticated encrypted conversation-state persistence."""
 
+from mr_hide.state.bindings import BindingRegistry
 from mr_hide.state.codec import VaultCodec
 from mr_hide.state.keys import MasterKeyManager
 from mr_hide.state.lifecycle import (
@@ -15,6 +16,7 @@ from mr_hide.state.store import AtomicVaultStore
 __all__ = [
     "RETENTION_PERIOD",
     "AtomicVaultStore",
+    "BindingRegistry",
     "ConversationResult",
     "ConversationService",
     "ConversationState",
