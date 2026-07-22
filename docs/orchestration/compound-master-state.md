@@ -17,9 +17,9 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-002 artifact gate
-- Result: RDM-001 is complete. RU1, RU2, and RU3 were merged locally into `develop` at `06120c9`, `bb9f079`, and `8494c90`; no remote mutation occurred.
-- Primary artifact: `docs/plans/2026-07-22-001-feat-executable-privacy-proxy-foundation-plan.md`
+- Phase: RDM-002 RU1 local release gate
+- Result: RDM-001 is complete. RDM-002 RU1 implementation, verification, code review, security review, build, and clean-wheel smoke passed on `codex/privacy-transformation-core`; local integration is the remaining RU1 step.
+- Primary artifact: `docs/plans/2026-07-22-002-feat-reversible-privacy-conversation-core-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
 ## Preflight
@@ -27,7 +27,7 @@ review_threshold: P0-P2
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
 - Integration base: local `develop` at `8494c90`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
-- Active implementation branch: `codex/rdm-001-closeout`, containing only the post-merge state reconciliation
+- Active implementation branch: `codex/privacy-transformation-core`, created from local `develop` after the RDM-001 closeout
 - Working tree before this resume: clean at `ba09b20`; this artifact run adds/updates orchestration documents only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
@@ -41,8 +41,8 @@ review_threshold: P0-P2
 | Logical role | Resolution | Status |
 |---|---|---|
 | roadmap_generator | `krt-roadmap-cartographer` | resolved and used |
-| brainstorm | `compound-engineering:ce-brainstorm` | resolved and used for RDM-001 |
-| plan | `compound-engineering:ce-plan` | resolved and used for RDM-001 |
+| brainstorm | `compound-engineering:ce-brainstorm` | resolved and used for RDM-001 and RDM-002 |
+| plan | `compound-engineering:ce-plan` | resolved and used for RDM-001 and RDM-002 |
 | document_review | `compound-engineering:ce-doc-review` | resolved and used for roadmap, planning input, and implementation plan |
 | state_archivist | `krt-state-archivist` | available, not needed for compact initial state |
 | work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RU1, RU2, and RU3 complete |
@@ -64,11 +64,12 @@ review_threshold: P0-P2
 | Initiative brief | complete | accepted product authority from prior brainstorm |
 | Roadmap | complete | passed (coherence, feasibility, product, security, scope, adversarial) |
 | RDM-001 brainstorm | complete | planning input review passed (coherence, feasibility, product, security, scope, adversarial) |
-| Other brainstorms | not created | dependency-ordered after RDM-001 gate |
+| RDM-002 requirements | incorporated into its unified plan | accepted initiative decisions carried forward; no product blocker |
 | RDM-001 implementation plan | `docs/plans/2026-07-22-001-feat-executable-privacy-proxy-foundation-plan.md` | implementation-ready; confidence check and document review passed |
 | RDM-001 work package | `docs/work-packages/RDM-001-executable-privacy-proxy-foundation/2026-07-22-001-executable-foundation-work-package.md` | checker passed; package review and Reviewability Gate passed |
-| Other plans | not created | pending per-item brainstorm/review |
-| Other work packages | not created | pending reviewed plans |
+| RDM-002 implementation plan | `docs/plans/2026-07-22-002-feat-reversible-privacy-conversation-core-plan.md` | implementation-ready; coherence, feasibility, security, scope, and adversarial pass complete |
+| RDM-002 work package | `docs/work-packages/RDM-002-reversible-privacy-conversation-core/2026-07-22-002-reversible-privacy-core-work-package.md` | bundled checker passed; three serial local review units |
+| Later plans/packages | not created | dependency-ordered after RDM-002 gate |
 
 ## Blockers And Required Decisions
 
@@ -121,9 +122,15 @@ review_threshold: P0-P2
 - RU3 review finding: backend discovery exceptions could escape the redacted `doctor` contract. The failure is now caught and reported as `unavailable; probe-failed`, with a regression test. No credential value or exception detail is emitted.
 - RU3 code/security review result: passed with no remaining P0-P2 findings. The external cross-model additive pass was unavailable without invoking a live provider and was not required for the local gate.
 - RU3 local release result: three reviewed commits (`cca91f4`, `3d11d4c`, `5bdf422`) were rebased onto `develop` and merged locally with `--no-ff` as `8494c90`. No push, PR, Jira mutation, reviewer notification, or remote merge occurred.
+- RDM-002 artifact result: the plan preserves the accepted R9-R34 behavior while separating provider-neutral detection/transformation, encrypted state, and policy lifecycle into three review units. Official Presidio, cryptography, and tiktoken documentation grounded current dependency/API assumptions.
+- RDM-002 plan review result: passed inline because repository instructions require sequential main-thread execution. The review replaced an unprovable generic rollback claim with stale-writer protection, added bounded custom-regex execution, canonical conversation identifiers, and explicit handling for raw text colliding with an existing substitute.
+- RDM-002 package checker: passed with RU1 selected for execution and local-only PR metadata retained solely for checker/audit compatibility.
+- RDM-002 RU1 implementation result: provider-neutral immutable mapping models, deterministic overlap/normalization, collision-safe compact aliases, compatibility surrogates, explicit cost metrics, longest-match restoration, Presidio English/Spanish integration, timeout-bounded technical-secret recognizers, declarative custom recognizers, and a safe default composite detector are complete.
+- RDM-002 RU1 verification result: 141 hermetic tests passed on lock-resolved Python 3.11 and 3.13; 57 focused privacy/model tests passed locally, including three real Presidio tests with `en_core_web_sm==3.8.0` and `es_core_news_sm==3.8.0`; Ruff, strict mypy, lock validation, build, clean-wheel install/import smoke, dependency audit, and offline suffix-list evidence passed. The locked dependency graph reports no known vulnerabilities.
+- RDM-002 RU1 review result: confirmed issues were fixed for empty-detector fail-open, multiple-candidate collision escape, ambiguous/unknown/corrupt mapping restoration, recursive allocation denial of service, eager spaCy loading, unlabelled byte-vs-token costs, exception-cause leakage, implicit tiktoken resolution, and tldextract network updates. No P0-P2 findings remain.
 
 ## Exact Next Invocation
 
 ```text
-Create and review the RDM-002 requirements, implementation plan, and work package from the accepted initiative contract, then implement its review units on local feature branches targeting `develop`. Do not push or create a PR.
+Commit the reviewed RU1 implementation/evidence, rebase `codex/privacy-transformation-core` onto local `develop`, and merge locally with `--no-ff`. Then start RU2 encrypted conversation vault. Do not push or create a PR.
 ```
