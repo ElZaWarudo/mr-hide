@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from collections.abc import Sequence
 from typing import Any
-from urllib.parse import urlsplit
 
 import click
 
@@ -14,6 +14,9 @@ from mr_hide import __version__
 from mr_hide.clients import LaunchConflict, get_adapter
 from mr_hide.compatibility import CompatibilityError, check_client_version, load_manifest
 from mr_hide.diagnostics import environment_presence
+from mr_hide.proxy import ProxyConfigurationError, validate_upstream_url
+from mr_hide.runtime.models import SupervisorError
+from mr_hide.runtime.supervisor import supervise_launch
 
 
 class ExplicitBoundaryCommand(click.Command):
@@ -31,16 +34,10 @@ def cli() -> None:
 
 
 def _upstream_url(_ctx: click.Context, _param: click.Parameter, value: str) -> str:
-    parsed = urlsplit(value)
-    if (
-        parsed.scheme not in {"http", "https"}
-        or parsed.hostname is None
-        or parsed.username is not None
-        or parsed.password is not None
-        or parsed.fragment
-    ):
-        raise click.BadParameter("must be an http(s) URL without userinfo or a fragment")
-    return value
+    try:
+        return validate_upstream_url(value)
+    except ProxyConfigurationError as error:
+        raise click.BadParameter(str(error)) from error
 
 
 def _launch_options(function: Any) -> Any:
@@ -66,21 +63,30 @@ def _preflight(
     upstream: str,
     allow_untested: bool,
     client_args: Sequence[str],
-) -> None:
+) -> int:
     if not ctx.meta.get("explicit_client_boundary"):
         raise click.UsageError("separate client arguments with -- (use: -- CLIENT_ARGS)", ctx)
     try:
-        result = check_client_version(client, allow_untested=allow_untested)
-        get_adapter(client).validate_client_args(client_args)
+        version = check_client_version(client, allow_untested=allow_untested)
+        adapter = get_adapter(client)
+        adapter.validate_client_args(client_args)
     except LaunchConflict as error:
         raise click.UsageError(str(error), ctx) from error
     except CompatibilityError as error:
         raise click.ClickException(str(error)) from error
-    status = "unsupported one-run override" if result.override else result.evidence_status
-    raise click.ClickException(
-        f"{client} {result.detected} preflight passed ({status}) with an explicit upstream; "
-        "the supervised local proxy runtime is not available in this foundation slice."
-    )
+    try:
+        result = asyncio.run(
+            supervise_launch(
+                adapter=adapter,
+                executable=version.executable,
+                upstream=upstream,
+                client_args=client_args,
+                parent_env=os.environ,
+            )
+        )
+    except SupervisorError as error:
+        raise click.ClickException(str(error)) from error
+    return result.exit_code
 
 
 @cli.command(
@@ -97,7 +103,7 @@ def codex(
 ) -> None:
     """Preflight Codex. Syntax: OPTIONS -- CLIENT_ARGS..."""
 
-    _preflight(ctx, "codex", upstream, allow_untested, client_args)
+    ctx.exit(_preflight(ctx, "codex", upstream, allow_untested, client_args))
 
 
 @cli.command(
@@ -114,7 +120,7 @@ def claude(
 ) -> None:
     """Preflight Claude Code. Syntax: OPTIONS -- CLIENT_ARGS..."""
 
-    _preflight(ctx, "claude", upstream, allow_untested, client_args)
+    ctx.exit(_preflight(ctx, "claude", upstream, allow_untested, client_args))
 
 
 @cli.command("compatibility")

@@ -1,7 +1,7 @@
 ---
 initiative: token-aware-privacy-proxy
 mode: full
-status: implementation-complete
+status: in-progress
 date: 2026-07-22
 production: unknown
 jira_policy: optional
@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-001 RU1 local release execution
-- Result: RU1 passed all local gates. The user replaced the PR workflow with explicit local merges into `develop` and authorized Release Marshal autonomy for that local-only flow.
+- Phase: RDM-001 RU2 local release gate
+- Result: RU1 was merged locally into `develop` at `06120c9`; RU2 implementation, review, security, and verification gates passed on `codex/local-streaming-proxy-runtime` and it is ready for the authorized local rebase/merge.
 - Primary artifact: `docs/plans/2026-07-22-001-feat-executable-privacy-proxy-foundation-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -27,7 +27,7 @@ review_threshold: P0-P2
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
 - Integration base: local `develop` at `ba09b20`, created from the matching `origin/master` commit; it has no upstream and will receive local feature merges only
-- Active implementation branch: `codex/client-compatibility-foundation`, created from the matching local and remote integration-base commit
+- Active implementation branch: `codex/local-streaming-proxy-runtime`, created from local `develop` after the RU1 merge
 - Working tree before this resume: clean at `ba09b20`; this artifact run adds/updates orchestration documents only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
@@ -45,10 +45,10 @@ review_threshold: P0-P2
 | plan | `compound-engineering:ce-plan` | resolved and used for RDM-001 |
 | document_review | `compound-engineering:ce-doc-review` | resolved and used for roadmap, planning input, and implementation plan |
 | state_archivist | `krt-state-archivist` | available, not needed for compact initial state |
-| work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RU1 complete |
-| code review | `compound-engineering:ce-code-review` | RU1 passed after six fixes; no P0-P2 remain |
-| security review | `krt-security-sentinel` | RU1 passed; no P0-P2 remain |
-| release | `krt-release-marshal` adapted to the user-mandated local-only flow | active; owns commits, rebase, and local merge, with no PR/Jira/remote mutation |
+| work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RU1 and RU2 complete |
+| code review | `compound-engineering:ce-code-review` | RU1 and RU2 passed after local fixes |
+| security review | `krt-security-sentinel` | RU1 and RU2 passed |
+| release | `krt-release-marshal` adapted to the user-mandated local-only flow | RU1 locally merged; RU2 ready for local integration |
 
 ## Context Readiness
 
@@ -106,9 +106,17 @@ review_threshold: P0-P2
 - Jira release posture: optional and omitted. The strict checker returned `env-loaded-without-project-secret-file`: required variable names are present globally, but the checkout-local `.krt/env/jira-scribe.env` contract does not exist. No credentials were requested or used.
 - Historical PR scope guardrail: the reconciled RU1 diff contained 2,930 additions and 46 deletions across 27 files before the deterministic local-env guard was added. The scope remains one coherent reviewed unit; no PR will be created.
 - Historical PR body validation is retained only as audit evidence; it will not be published.
+- RU1 local release result: four deterministic commits (`404c219`, `a628cbe`, `b7a0111`, `09eeb8b`) were rebased onto `develop` and merged locally with `--no-ff` as `06120c9`. The feature branch remains local; no push, PR, Jira, reviewer, or remote merge occurred.
+- RU2 execution engine: native inline. The plan has two dependent units (U3 then U4), the active repository instructions map subagent work to sequential main-thread execution, `.compound-engineering/config.local.yaml` is absent, and no cross-model route applies.
+- RU2 implementation result: U3 and U4 are complete. Declared Responses/Messages/counting routes forward raw request and response streams through a lifespan-scoped HTTPX client; the CLI now reserves an exclusive loopback endpoint, waits for Uvicorn readiness, launches one owned client process group, propagates exit status, and cleans up server, socket, child, and stubborn descendants across success, failure, and cancellation.
+- RU2 Impact Scan result: complete. The changed public surfaces are the CLI launch behavior, three local HTTP routes, header/query/body/status streaming, adapter-provided child environments, process-group lifecycle, and synthetic upstream/client fixtures. All in-repository consumers are covered by unit/integration tests; persistent client configuration remains outside the mutation boundary.
+- RU2 code review result: five P1/P2 findings were reproduced and fixed: Windows port reuse weakened endpoint exclusivity, HTTPX replayed upstream cookies, malformed upstream URLs escaped the safe CLI error contract, process cleanup errors skipped proxy/socket release, and cancellation could orphan the inner Uvicorn task. Focused regressions pass; the external cross-model pass was unavailable because no different-family CLI is installed.
+- RU2 security result: passed with no remaining P0-P2 findings. The listener is IPv4 loopback-only and Windows-exclusive; upstream selection is explicit; URL userinfo/fragments and malformed targets are rejected; ambient proxies and upstream redirects are disabled; TLS verification remains enabled; hop-by-hop headers are stripped; bodies and credentials are not logged; child execution is shell-free; and force cleanup targets only the owned group/tree.
+- RU2 verification result: 77 hermetic tests passed on lock-resolved Python 3.11 and 3.13; Ruff and strict mypy passed; sdist/wheel build and clean-wheel smoke passed. The focused post-review slice passed 25 tests. The Windows exclusive-bind regression ran locally; Linux lifecycle coverage remains represented by the required CI matrix and is not claimed as locally executed.
+- RU2 residual risk: on Windows, confirming every descendant after a cooperative parent exits before a signal-resistant descendant ultimately requires stronger OS ownership such as Job Objects; the current stubborn parent/descendant tree and unrelated-process isolation paths pass. This is advisory for the current supported foundation and remains visible for RU3 cross-platform evidence.
 
 ## Exact Next Invocation
 
 ```text
-Use `krt-gitflow-knight` to create the approved RU1 commits, use `krt-rebase-smith` against local `develop`, merge `codex/client-compatibility-foundation` locally into `develop`, then return to Compound Master for RU2. Do not push or create a PR.
+Commit the verified RU2 review fixes and state updates on `codex/local-streaming-proxy-runtime`, rebase it onto local `develop`, merge it locally with `--no-ff`, then start RU3 on `codex/cross-platform-compatibility-evidence`. Do not push or create a PR.
 ```
