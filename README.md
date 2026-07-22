@@ -14,6 +14,7 @@ python -m uv sync --locked --all-extras
 python -m uv run --locked python -m pytest -m "not compatibility and not system_keyring"
 python -m uv run --locked python -m ruff check .
 python -m uv run --locked python -m mypy src
+python -m uv run --locked python scripts/compatibility/render_evidence.py --check
 python -m uv run --locked python -m build
 python -m uv run --locked python scripts/verify_wheel.py dist
 ```
@@ -32,3 +33,8 @@ mr-hide claude --upstream https://api.example.test -- --resume SESSION_ID
 Run `mr-hide compatibility` for the candidate client ranges and evidence state.
 An untested client blocks by default; `--allow-untested` is a visible, one-run
 override and never changes the packaged compatibility manifest.
+
+See [client compatibility](docs/compatibility.md) for the required version/OS
+matrix and recorded evidence. See [traffic boundary](docs/traffic-boundary.md)
+for the routes Mr Hide mediates and the authentication, telemetry, update, and
+tool traffic it does not claim to protect.

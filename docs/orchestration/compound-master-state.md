@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-001 RU2 local release gate
-- Result: RU1 was merged locally into `develop` at `06120c9`; RU2 implementation, review, security, and verification gates passed on `codex/local-streaming-proxy-runtime` and it is ready for the authorized local rebase/merge.
+- Phase: RDM-001 RU3 local release gate
+- Result: RU1 and RU2 were merged locally into `develop` at `06120c9` and `bb9f079`; RU3 implementation, verification, code review, and security review are complete on `codex/cross-platform-compatibility-evidence`, with local integration in progress.
 - Primary artifact: `docs/plans/2026-07-22-001-feat-executable-privacy-proxy-foundation-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -26,8 +26,8 @@ review_threshold: P0-P2
 
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
-- Integration base: local `develop` at `ba09b20`, created from the matching `origin/master` commit; it has no upstream and will receive local feature merges only
-- Active implementation branch: `codex/local-streaming-proxy-runtime`, created from local `develop` after the RU1 merge
+- Integration base: local `develop` at `bb9f079`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
+- Active implementation branch: `codex/cross-platform-compatibility-evidence`, created from local `develop` after the RU2 merge
 - Working tree before this resume: clean at `ba09b20`; this artifact run adds/updates orchestration documents only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
@@ -45,10 +45,10 @@ review_threshold: P0-P2
 | plan | `compound-engineering:ce-plan` | resolved and used for RDM-001 |
 | document_review | `compound-engineering:ce-doc-review` | resolved and used for roadmap, planning input, and implementation plan |
 | state_archivist | `krt-state-archivist` | available, not needed for compact initial state |
-| work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RU1 and RU2 complete |
-| code review | `compound-engineering:ce-code-review` | RU1 and RU2 passed after local fixes |
-| security review | `krt-security-sentinel` | RU1 and RU2 passed |
-| release | `krt-release-marshal` adapted to the user-mandated local-only flow | RU1 locally merged; RU2 ready for local integration |
+| work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RU1, RU2, and RU3 complete |
+| code review | `compound-engineering:ce-code-review` | RU1, RU2, and RU3 passed after local fixes |
+| security review | `krt-security-sentinel` | RU1, RU2, and RU3 passed |
+| release | `krt-release-marshal` adapted to the user-mandated local-only flow | RU1 and RU2 locally merged; RU3 pending local integration |
 
 ## Context Readiness
 
@@ -114,9 +114,15 @@ review_threshold: P0-P2
 - RU2 security result: passed with no remaining P0-P2 findings. The listener is IPv4 loopback-only and Windows-exclusive; upstream selection is explicit; URL userinfo/fragments and malformed targets are rejected; ambient proxies and upstream redirects are disabled; TLS verification remains enabled; hop-by-hop headers are stripped; bodies and credentials are not logged; child execution is shell-free; and force cleanup targets only the owned group/tree.
 - RU2 verification result: 77 hermetic tests passed on lock-resolved Python 3.11 and 3.13; Ruff and strict mypy passed; sdist/wheel build and clean-wheel smoke passed. The focused post-review slice passed 25 tests. The Windows exclusive-bind regression ran locally; Linux lifecycle coverage remains represented by the required CI matrix and is not claimed as locally executed.
 - RU2 residual risk: on Windows, confirming every descendant after a cooperative parent exits before a signal-resistant descendant ultimately requires stronger OS ownership such as Job Objects; the current stubborn parent/descendant tree and unrelated-process isolation paths pass. This is advisory for the current supported foundation and remains visible for RU3 cross-platform evidence.
+- RU2 local release result: five reviewed commits were rebased onto `develop` and merged locally with `--no-ff` as `bb9f079`. No remote mutation occurred.
+- RU3 implementation result: U5 and U6 are complete. Exact approved Windows Credential Locker and Linux Secret Service backend types are qualified with a random set/get/delete probe; the CLI reports only redacted capability state. Pinned real-client contracts exercise Codex Responses and Claude Messages launch/resume against a protocol-shaped local upstream, while generated evidence distinguishes mediated inference from non-inference egress and the still-absent privacy transformation.
+- RU3 local compatibility evidence: Codex `0.144.4` and `0.145.0`, and Claude Code `2.1.216` and `2.1.217`, passed on Windows with exact-version assertions, dummy credentials, isolated client state, and no live provider. Linux cells are configured but not claimed as locally executed because this local-only run cannot execute GitHub-hosted Ubuntu jobs; the exact command is encoded in `.github/workflows/compatibility.yml`.
+- RU3 verification result: 87 hermetic core tests passed on lock-resolved Python 3.11 and 3.13; four real-client Windows cells passed; the actual Windows Credential Locker probe passed; focused keyring/evidence coverage passed 13 tests; Ruff, strict mypy, YAML parsing, generated-doc drift, build, and wheel-content checks passed.
+- RU3 review finding: backend discovery exceptions could escape the redacted `doctor` contract. The failure is now caught and reported as `unavailable; probe-failed`, with a regression test. No credential value or exception detail is emitted.
+- RU3 code/security review result: passed with no remaining P0-P2 findings. The external cross-model additive pass was unavailable without invoking a live provider and was not required for the local gate.
 
 ## Exact Next Invocation
 
 ```text
-Commit the verified RU2 review fixes and state updates on `codex/local-streaming-proxy-runtime`, rebase it onto local `develop`, merge it locally with `--no-ff`, then start RU3 on `codex/cross-platform-compatibility-evidence`. Do not push or create a PR.
+Finish the RU3 code/security review, commit the verified changes on `codex/cross-platform-compatibility-evidence`, rebase onto local `develop`, and merge locally with `--no-ff`. Then advance Compound Master to RDM-002. Do not push or create a PR.
 ```
