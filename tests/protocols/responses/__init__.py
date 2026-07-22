@@ -1,0 +1,1 @@
+"""OpenAI Responses protocol tests."""

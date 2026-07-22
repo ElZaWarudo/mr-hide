@@ -1,0 +1,1 @@
+"""Provider protocol tests."""

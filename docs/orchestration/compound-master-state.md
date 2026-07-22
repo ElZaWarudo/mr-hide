@@ -17,18 +17,18 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-002 RU3 local release gate
-- Result: RDM-001 and RDM-002 RU1-RU2 are locally integrated. RDM-002 RU3 implementation, verification, code review, security review, build, and clean-wheel smoke passed on `codex/privacy-policy-lifecycle`; local integration is the remaining RU3 step.
-- Primary artifact: `docs/plans/2026-07-22-002-feat-reversible-privacy-conversation-core-plan.md`
+- Phase: RDM-003 RU1 local release gate
+- Result: RDM-001 and RDM-002 are locally integrated. RDM-003 RU1 implements reviewed, bounded OpenAI Responses JSON/SSE transformations and has passed its verification, security, and adversarial gates; it is ready for a local-only merge into `develop`.
+- Primary artifact: `docs/plans/2026-07-22-003-feat-codex-openai-responses-protection-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
 ## Preflight
 
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
-- Integration base: local `develop` at `cdd5c7c`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
-- Active implementation branch: `codex/privacy-policy-lifecycle`, created from local `develop` after the RDM-002 RU2 merge
-- Working tree before RU3: clean at `cdd5c7c`; the current diff is limited to lifecycle/policy/evidence closure
+- Integration base: local `develop` at `89b9487`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
+- Active artifact/implementation branch: `codex/responses-protocol-transformers`, created from local `develop` after the RDM-002 closeout
+- Working tree before RDM-003 artifacts: clean at `89b9487`; the current diff is limited to the RDM-003 plan, package, and orchestration state
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
@@ -69,7 +69,9 @@ review_threshold: P0-P2
 | RDM-001 work package | `docs/work-packages/RDM-001-executable-privacy-proxy-foundation/2026-07-22-001-executable-foundation-work-package.md` | checker passed; package review and Reviewability Gate passed |
 | RDM-002 implementation plan | `docs/plans/2026-07-22-002-feat-reversible-privacy-conversation-core-plan.md` | implementation-ready; coherence, feasibility, security, scope, and adversarial pass complete |
 | RDM-002 work package | `docs/work-packages/RDM-002-reversible-privacy-conversation-core/2026-07-22-002-reversible-privacy-core-work-package.md` | bundled checker passed; three serial local review units |
-| Later plans/packages | not created | dependency-ordered after RDM-002 gate |
+| RDM-003 implementation plan | `docs/plans/2026-07-22-003-feat-codex-openai-responses-protection-plan.md` | implementation-ready; inline document review passed |
+| RDM-003 work package | `docs/work-packages/RDM-003-codex-openai-responses/2026-07-22-003-codex-responses-work-package.md` | bundled checker passed; RU1 selected before RU2 runtime integration |
+| Later plans/packages | not created | dependency-ordered after RDM-003 gate |
 
 ## Blockers And Required Decisions
 
@@ -140,9 +142,17 @@ review_threshold: P0-P2
 - RDM-002 RU3 verification result: 236 tests passed locally on Python 3.13 including exact English/Spanish Presidio models and the approved Windows Credential Locker; 231 hermetic tests passed on Python 3.11. Ruff, strict mypy over 41 source files, workflow YAML parsing, deterministic benchmark, sdist/wheel build, and clean-wheel imports for policy/lifecycle/vault/PEP-561 APIs passed.
 - RDM-002 RU3 review result: confirmed issues were fixed for untyped policy inputs, naive retention cutoffs, deletion after a candidate was concurrently refreshed, fail-open passthrough when activity persistence fails, model diagnostic leakage/load behavior, isolated system-keyring test identity, and wheel omission of new public APIs. No P0-P2 finding remains.
 - RDM-002 RU3 security result: blocked results cannot carry text; processing, restoration, revision, clock, keyring, and persistence failures never return raw or partial values. Default tool passthrough is a deliberate warned policy action, not fallback. Expired ciphertext is deleted at the exact 30-day boundary and never silently recreated under the old identity.
+- RDM-002 RU3 local release result: four reviewed commits (`0527ac0`, `e69201b`, `4222747`, `bb1ee7d`) were rebased onto `develop` and merged locally with `--no-ff` as `89b9487`. RDM-002 is complete; no remote mutation occurred.
+- RDM-003 artifact result: current official OpenAI Responses input/tool and streaming-event references plus pinned local Codex evidence define an explicit field/event matrix. Unknown structures remain opaque, while declared tool definitions and strict inner function/MCP argument JSON receive policy-aware traversal.
+- RDM-003 plan review result: passed inline under the repository's sequential-agent rule. The review added strict inner-JSON handling to avoid invalid escaped arguments, ordered SSE withholding so later events cannot overtake buffered sensitive deltas, explicit error-message restoration, bounded parsing, and a no-invented-counting-route rule.
+- RDM-003 package result: two serial units isolate pure bounded JSON/SSE transformers from native session binding and proxy/CLI integration. The bundled checker passed; its generated-artifact warning is addressed by keeping mechanically checked compatibility evidence beside the RU2 runtime it attests.
+- RDM-003 RU1 implementation result: explicit request/response JSON and SSE event matrices transform only declared conversational and tool surfaces. Outer and inner JSON reject duplicates and non-finite values, parsing and transformed output are bounded, unknown protocol subtrees/events remain opaque, and callback failures expose stable reason codes rather than source data.
+- RDM-003 RU1 streaming result: arbitrary transport chunking, LF/CRLF frames, delta/done aggregation, strict function/MCP argument JSON, output/content/reasoning/error events, and ordered withholding are covered. A malformed, incomplete, mismatched, or oversized eligible stream emits no partial transformed output.
+- RDM-003 RU1 review result: the implementation includes transactional whole-body requirements for RU2 composition, strict known-event typing, complete added/done event handling, post-transform expansion limits, and leakage regressions. The only sentinel scan match is an intentional exception payload whose test proves it is absent from the public error. No P0-P2 finding remains.
+- RDM-003 RU1 verification result: 36 focused protocol tests passed; the full Python 3.13 suite passed 272 tests with one POSIX-only skip and four compatibility deselections; the Python 3.11 suite passed 267 tests with one skip and nine deselections. Ruff, strict mypy over 45 source files, `git diff --check`, sdist/wheel build, and clean-wheel import smoke passed.
 
 ## Exact Next Invocation
 
 ```text
-Commit the reviewed RU3 implementation/evidence, rebase `codex/privacy-policy-lifecycle` onto local `develop`, and merge locally with `--no-ff`. Then create and review the RDM-003 artifact packet. Do not push or create a PR.
+Commit, rebase, and merge reviewed RDM-003 RU1 locally into `develop`, then create `codex/codex-responses-runtime` and implement RU2 conversation binding plus proxy/CLI integration. Do not push or create a PR.
 ```
