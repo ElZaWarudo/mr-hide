@@ -98,7 +98,7 @@ Grouping rationale:
 |---|---|---|
 | RU1 (U1 + U2) | merged-locally | Merged into local `develop` as `06120c9`; no remote mutation occurred. |
 | RU2 (U3 + U4) | merged-locally | Merged into local `develop` as `bb9f079`; no remote mutation occurred. |
-| RU3 (U5 + U6) | ready-local-merge | Implementation, verification, code review, and security review passed after fixing redacted backend-discovery failure handling. |
+| RU3 (U5 + U6) | merged-locally | Merged into local `develop` as `8494c90`; no remote mutation occurred. |
 
 Delivery policy: local merges only. Each review unit is committed on its semantic feature branch, rebased onto local `develop`, and merged locally after its gates pass. Do not push branches, create PRs, mutate Jira, notify reviewers, or merge remotely.
 
