@@ -61,14 +61,50 @@ async def responses(request: Request) -> StreamingResponse:
             "total_tokens": 2,
         },
     }
+    message = response["output"][0]
+    part = message["content"][0]
     events = [
-        {"type": "response.created", "response": {**response, "status": "in_progress"}},
+        {
+            "type": "response.created",
+            "response": {**response, "status": "in_progress", "output": []},
+        },
+        {
+            "type": "response.output_item.added",
+            "output_index": 0,
+            "item": {**message, "status": "in_progress", "content": []},
+        },
+        {
+            "type": "response.content_part.added",
+            "item_id": "msg_contract",
+            "output_index": 0,
+            "content_index": 0,
+            "part": {**part, "text": ""},
+        },
         {
             "type": "response.output_text.delta",
             "item_id": "msg_contract",
             "output_index": 0,
             "content_index": 0,
             "delta": CONTRACT_REPLY,
+        },
+        {
+            "type": "response.output_text.done",
+            "item_id": "msg_contract",
+            "output_index": 0,
+            "content_index": 0,
+            "text": CONTRACT_REPLY,
+        },
+        {
+            "type": "response.content_part.done",
+            "item_id": "msg_contract",
+            "output_index": 0,
+            "content_index": 0,
+            "part": part,
+        },
+        {
+            "type": "response.output_item.done",
+            "output_index": 0,
+            "item": message,
         },
         {"type": "response.completed", "response": response},
     ]
