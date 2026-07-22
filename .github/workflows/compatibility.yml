@@ -1,0 +1,71 @@
+name: Real client compatibility
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  client-contract:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - client: codex
+            package: "@openai/codex"
+            version: "0.144.4"
+            os: ubuntu-latest
+          - client: codex
+            package: "@openai/codex"
+            version: "0.145.0"
+            os: ubuntu-latest
+          - client: claude
+            package: "@anthropic-ai/claude-code"
+            version: "2.1.216"
+            os: ubuntu-latest
+          - client: claude
+            package: "@anthropic-ai/claude-code"
+            version: "2.1.217"
+            os: ubuntu-latest
+          - client: codex
+            package: "@openai/codex"
+            version: "0.144.4"
+            os: windows-latest
+          - client: codex
+            package: "@openai/codex"
+            version: "0.145.0"
+            os: windows-latest
+          - client: claude
+            package: "@anthropic-ai/claude-code"
+            version: "2.1.216"
+            os: windows-latest
+          - client: claude
+            package: "@anthropic-ai/claude-code"
+            version: "2.1.217"
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+      - name: Install uv
+        run: python -m pip install "uv==0.11.31"
+      - name: Sync locked environment
+        run: python -m uv sync --locked --all-extras
+      - name: Install exact client package
+        shell: bash
+        run: npm install --global "${{ matrix.package }}@${{ matrix.version }}"
+      - name: Verify exact client contract
+        shell: bash
+        env:
+          MR_HIDE_EXPECT_CODEX_VERSION: ${{ matrix.client == 'codex' && matrix.version || '' }}
+          MR_HIDE_EXPECT_CLAUDE_VERSION: ${{ matrix.client == 'claude' && matrix.version || '' }}
+        run: python -m uv run --locked python -m pytest "tests/compatibility/test_${{ matrix.client }}_contract.py" -m compatibility

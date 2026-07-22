@@ -7,6 +7,60 @@ version_args = ["--version"]
 supported = ">=0.144.4,<0.146.0"
 evidence_status = "candidate"
 evidence_note = "Candidate range; real-client Windows/Linux evidence is required before release support is advertised."
+
+[[compatibility_matrix]]
+client = "codex"
+versions = ["0.144.4", "0.145.0"]
+platforms = ["windows", "linux"]
+flow = "non-interactive Responses round trip"
+routes = ["/v1/responses"]
+status = "required"
+limitation = "Authentication, model discovery, telemetry, updates, and arbitrary tool egress are outside the mediated boundary."
+
+[[compatibility_matrix]]
+client = "claude"
+versions = ["2.1.216", "2.1.217"]
+platforms = ["windows", "linux"]
+flow = "non-interactive Messages launch and native resume"
+routes = ["/v1/messages", "/v1/messages/count_tokens"]
+status = "required"
+limitation = "Authentication, telemetry, updates, and provider-bound tool egress are outside the mediated boundary."
+
+[[observed_evidence]]
+date = "2026-07-22"
+client = "codex"
+version = "0.144.4"
+platform = "windows"
+flow = "non-interactive Responses round trip"
+result = "pass"
+limitations = "Local candidate evidence only; the complete Windows/Linux boundary matrix remains required."
+
+[[observed_evidence]]
+date = "2026-07-22"
+client = "claude"
+version = "2.1.216"
+platform = "windows"
+flow = "non-interactive Messages launch and native resume"
+result = "pass"
+limitations = "Local candidate evidence only; the complete Windows/Linux boundary matrix remains required."
+
+[[observed_evidence]]
+date = "2026-07-22"
+client = "codex"
+version = "0.145.0"
+platform = "windows"
+flow = "non-interactive Responses round trip"
+result = "pass"
+limitations = "Local candidate evidence only; the complete Windows/Linux boundary matrix remains required."
+
+[[observed_evidence]]
+date = "2026-07-22"
+client = "claude"
+version = "2.1.217"
+platform = "windows"
+flow = "non-interactive Messages launch and native resume"
+result = "pass"
+limitations = "Local candidate evidence only; the complete Windows/Linux boundary matrix remains required."
 [clients.claude]
 display_name = "Claude Code"
 executable = "claude"
