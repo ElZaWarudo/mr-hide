@@ -47,6 +47,18 @@ def _backend_name(backend: object) -> str:
     return f"{backend_type.__module__}.{backend_type.__qualname__}"
 
 
+def approved_backend_types() -> tuple[type[object], ...]:
+    """Return the exact OS-backed keyring types approved for this platform."""
+
+    return _platform_backend_types()
+
+
+def backend_name(backend: object) -> str:
+    """Return a non-secret backend type name suitable for diagnostics."""
+
+    return _backend_name(backend)
+
+
 def probe_keyring(
     *,
     backend: KeyringBackend | None = None,

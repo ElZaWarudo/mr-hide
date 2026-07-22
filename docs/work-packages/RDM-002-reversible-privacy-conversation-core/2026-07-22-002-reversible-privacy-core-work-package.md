@@ -45,8 +45,8 @@ Implement the complete provider-neutral RDM-002 privacy core: multilingual Presi
 
 | Review unit | Status | Evidence |
 |---|---|---|
-| RU1 | ready-local-merge | Implementation and review passed: 141 hermetic tests on Python 3.11/3.13, 57 focused privacy/model tests, lint, types, lock, build, dependency audit, and real local English/Spanish Presidio evidence. |
-| RU2 | pending | Starts after RU1 local merge. |
+| RU1 | integrated | Merged locally into `develop` as `04a283f` after implementation, review, and verification passed. |
+| RU2 | ready-local-merge | AES-GCM/HKDF/keyring/atomic-repository implementation and review passed: 185 hermetic tests on Python 3.11/3.13, 42 focused state tests, lint, types, build, clean-wheel state imports, dependency audit, and actual Windows keyring probe. |
 | RU3 | pending | Starts after RU2 local merge. |
 
 ## Reviewability Diagnosis

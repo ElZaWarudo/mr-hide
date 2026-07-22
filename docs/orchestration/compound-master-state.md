@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-002 RU1 local release gate
-- Result: RDM-001 is complete. RDM-002 RU1 implementation, verification, code review, security review, build, and clean-wheel smoke passed on `codex/privacy-transformation-core`; local integration is the remaining RU1 step.
+- Phase: RDM-002 RU2 local release gate
+- Result: RDM-001 and RDM-002 RU1 are locally integrated. RDM-002 RU2 implementation, verification, code review, security review, build, and clean-wheel smoke passed on `codex/encrypted-conversation-vault`; local integration is the remaining RU2 step.
 - Primary artifact: `docs/plans/2026-07-22-002-feat-reversible-privacy-conversation-core-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -26,15 +26,15 @@ review_threshold: P0-P2
 
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
-- Integration base: local `develop` at `8494c90`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
-- Active implementation branch: `codex/privacy-transformation-core`, created from local `develop` after the RDM-001 closeout
-- Working tree before this resume: clean at `ba09b20`; this artifact run adds/updates orchestration documents only
+- Integration base: local `develop` at `04a283f`, created from the matching `origin/master` seed and advanced only through local feature merges; it has no upstream
+- Active implementation branch: `codex/encrypted-conversation-vault`, created from local `develop` after the RDM-002 RU1 merge
+- Working tree before RU2: clean at `04a283f`; the current diff is limited to the encrypted-vault review unit and its evidence
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
 - Delegation: no subagents used; artifact gate executed inline
 - Worktree policy: `avoid`
-- Autonomous ledger: none; external Jira/push/PR/merge mutation remains `manual-required`
+- Autonomous ledger: none; the user separately authorized local feature commits, rebases, and merges into `develop`; Jira, push, PR, reviewer, and remote merge mutations remain prohibited
 
 ## Resolved Roles
 
@@ -128,9 +128,15 @@ review_threshold: P0-P2
 - RDM-002 RU1 implementation result: provider-neutral immutable mapping models, deterministic overlap/normalization, collision-safe compact aliases, compatibility surrogates, explicit cost metrics, longest-match restoration, Presidio English/Spanish integration, timeout-bounded technical-secret recognizers, declarative custom recognizers, and a safe default composite detector are complete.
 - RDM-002 RU1 verification result: 141 hermetic tests passed on lock-resolved Python 3.11 and 3.13; 57 focused privacy/model tests passed locally, including three real Presidio tests with `en_core_web_sm==3.8.0` and `es_core_news_sm==3.8.0`; Ruff, strict mypy, lock validation, build, clean-wheel install/import smoke, dependency audit, and offline suffix-list evidence passed. The locked dependency graph reports no known vulnerabilities.
 - RDM-002 RU1 review result: confirmed issues were fixed for empty-detector fail-open, multiple-candidate collision escape, ambiguous/unknown/corrupt mapping restoration, recursive allocation denial of service, eager spaCy loading, unlabelled byte-vs-token costs, exception-cause leakage, implicit tiktoken resolution, and tldextract network updates. No P0-P2 findings remain.
+- RDM-002 RU1 local release result: five reviewed commits (`84c2033`, `58b2f14`, `79c0bf0`, `0ac85af`, `231dbb8`) were rebased onto `develop` and merged locally with `--no-ff` as `04a283f`. No remote mutation occurred.
+- RDM-002 RU2 implementation result: authenticated AES-256-GCM conversation envelopes use fresh 96-bit nonces, schema-and-identity AAD, HKDF-SHA256 per-conversation keys, and a 256-bit installation master key held only by an exact approved OS keyring backend. Canonical UUIDs, strict schemas, duplicate-key rejection, safe reason codes, atomic same-directory replacement, file locking, revision checks, and stale-writer rejection are complete.
+- RDM-002 RU2 verification result: 185 hermetic tests passed on Python 3.11.15 and 3.13.7; the focused state suite passed 42 tests with one Windows-inapplicable POSIX permission assertion skipped. Ruff, strict mypy, sdist/wheel build, clean-wheel CLI/resource/state import smoke, and the actual Windows Credential Locker probe passed.
+- RDM-002 RU2 dependency audit result: no known vulnerability was found in the installed project dependency set. Six ignored findings belonged only to bootstrap `pip 25.2`, which is neither declared in `pyproject.toml` nor included in the project wheel/lock export; CI audits the exported locked dependency set without bootstrap pip.
+- RDM-002 RU2 review result: confirmed seams were fixed for non-integer revisions, invalid runtime state types, nonce-factory type/exception leakage, master-key RNG exception leakage, package discovery for shared test fixtures, and missing wheel coverage for the public state API. No P0-P2 finding remains.
+- RDM-002 RU2 security result: tamper, wrong key, wrong identity, malformed/duplicate envelopes, invalid stored key, unapproved keyring subclasses, concurrent key bootstrap, stale/concurrent writers, interrupted atomic replacement, copied ciphertext plaintext leakage, and error sentinel leakage are covered. Loading never creates a replacement key. The master key and plaintext originals do not appear in the vault payload.
 
 ## Exact Next Invocation
 
 ```text
-Commit the reviewed RU1 implementation/evidence, rebase `codex/privacy-transformation-core` onto local `develop`, and merge locally with `--no-ff`. Then start RU2 encrypted conversation vault. Do not push or create a PR.
+Commit the reviewed RU2 implementation/evidence, rebase `codex/encrypted-conversation-vault` onto local `develop`, and merge locally with `--no-ff`. Then start RU3 privacy policy lifecycle. Do not push or create a PR.
 ```
