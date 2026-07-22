@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -96,3 +97,13 @@ def test_rotated_or_missing_key_never_recreates_state(tmp_path: Path) -> None:
         repo.load(CONVERSATION_ID)
 
     assert keys.created == 1
+
+
+def test_delete_rejects_naive_cutoff(tmp_path: Path) -> None:
+    repo = repository(tmp_path)
+    repo.create(sample_state())
+
+    with pytest.raises(VaultError, match="invalid-state-timestamp"):
+        repo.delete_if_inactive(CONVERSATION_ID, inactive_since=datetime(2026, 1, 1))
+
+    assert repo.load(CONVERSATION_ID) == sample_state()

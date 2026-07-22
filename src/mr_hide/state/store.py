@@ -40,6 +40,21 @@ class AtomicVaultStore:
     def exists_unlocked(self, conversation_id: UUID) -> bool:
         return self._path(conversation_id).is_file()
 
+    def conversation_ids(self) -> tuple[UUID, ...]:
+        identifiers: list[UUID] = []
+        try:
+            paths = tuple(self.root.glob("*.vault"))
+        except OSError:
+            raise VaultError("vault-list-failed") from None
+        for path in paths:
+            try:
+                identifier = UUID(path.stem)
+            except ValueError:
+                continue
+            if path.stem == str(identifier) and path.is_file():
+                identifiers.append(identifier)
+        return tuple(sorted(identifiers, key=str))
+
     def read_unlocked(self, conversation_id: UUID) -> bytes:
         path = self._path(conversation_id)
         try:
@@ -87,6 +102,16 @@ class AtomicVaultStore:
             if temporary_path is not None:
                 with suppress(OSError):
                     temporary_path.unlink(missing_ok=True)
+
+    def delete_unlocked(self, conversation_id: UUID) -> bool:
+        try:
+            self._path(conversation_id).unlink()
+            self._sync_directory()
+        except FileNotFoundError:
+            return False
+        except OSError:
+            raise VaultError("vault-delete-failed") from None
+        return True
 
     def _path(self, conversation_id: UUID) -> Path:
         return self.root / f"{conversation_id}.vault"

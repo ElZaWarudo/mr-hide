@@ -42,10 +42,16 @@ class MasterKeyManager:
         *,
         backend: KeyringBackend | None = None,
         approved_types: tuple[type[object], ...] | None = None,
+        service: str = _SERVICE,
+        account: str = _ACCOUNT,
     ) -> None:
+        if not service or not account or len(service) > 200 or len(account) > 200:
+            raise VaultError("keyring-identity-invalid")
         self._state_directory = state_directory
         self._backend = backend
         self._approved_types = approved_types
+        self._service = service
+        self._account = account
 
     def load_existing(self) -> bytes:
         backend = self._approved_backend()
@@ -73,7 +79,7 @@ class MasterKeyManager:
                     raise VaultError("master-key-generation-failed") from None
                 serialized = base64.urlsafe_b64encode(generated).decode("ascii")
                 try:
-                    backend.set_password(_SERVICE, _ACCOUNT, serialized)
+                    backend.set_password(self._service, self._account, serialized)
                 except Exception:
                     raise VaultError("master-key-write-failed") from None
                 confirmed = self._read(backend)
@@ -101,7 +107,7 @@ class MasterKeyManager:
 
     def _read(self, backend: KeyringBackend) -> str | None:
         try:
-            return backend.get_password(_SERVICE, _ACCOUNT)
+            return backend.get_password(self._service, self._account)
         except Exception:
             raise VaultError("master-key-read-failed") from None
 

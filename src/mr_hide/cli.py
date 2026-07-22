@@ -13,7 +13,7 @@ import click
 from mr_hide import __version__
 from mr_hide.clients import LaunchConflict, get_adapter
 from mr_hide.compatibility import CompatibilityError, check_client_version, load_manifest
-from mr_hide.diagnostics import environment_presence
+from mr_hide.diagnostics import environment_presence, model_presence
 from mr_hide.proxy import ProxyConfigurationError, validate_upstream_url
 from mr_hide.runtime.models import SupervisorError
 from mr_hide.runtime.supervisor import supervise_launch
@@ -162,6 +162,11 @@ def doctor() -> None:
             click.echo(f"{client}: {error}")
     for item in environment_presence(os.environ):
         click.echo(f"{item.name}: {'present' if item.present else 'absent'}")
+    for model in model_presence():
+        click.echo(
+            f"nlp_model_{model.language}: "
+            f"{'available' if model.available else 'unavailable'} ({model.package})"
+        )
     capability = probe_keyring()
     click.echo(
         f"secure_store: {'available' if capability.supported else 'unavailable'} "

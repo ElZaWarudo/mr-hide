@@ -38,10 +38,11 @@ def verify_wheel(distribution_directory: Path) -> None:
             "-c",
             (
                 "from importlib.resources import files; "
+                "from mr_hide.policy import decide_policy; "
                 "from mr_hide.privacy import MappingTable; "
-                "from mr_hide.state import VaultCodec, VaultRepository; "
+                "from mr_hide.state import ConversationService, VaultCodec, VaultRepository; "
                 "assert MappingTable().records == (); "
-                "assert VaultCodec and VaultRepository; "
+                "assert decide_policy and ConversationService and VaultCodec and VaultRepository; "
                 "assert files('mr_hide').joinpath('py.typed').is_file()"
             ),
         )

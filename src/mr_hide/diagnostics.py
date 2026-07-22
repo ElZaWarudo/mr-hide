@@ -29,6 +29,13 @@ class EnvironmentDiagnostic:
     present: bool
 
 
+@dataclass(frozen=True, slots=True)
+class ModelDiagnostic:
+    language: str
+    package: str
+    available: bool
+
+
 def environment_presence(environment: Mapping[str, str]) -> tuple[EnvironmentDiagnostic, ...]:
     """Describe only whether known credential variables are populated."""
 
@@ -46,3 +53,21 @@ def safe_probe_environment(environment: Mapping[str, str]) -> dict[str, str]:
         for name, value in environment.items()
         if name.upper() not in SENSITIVE_ENVIRONMENT_NAMES and not _SENSITIVE_NAME.search(name)
     }
+
+
+def model_presence() -> tuple[ModelDiagnostic, ...]:
+    """Report local model package presence without loading an NLP pipeline."""
+
+    models = (("en", "en_core_web_sm"), ("es", "es_core_news_sm"))
+    try:
+        import spacy.util
+
+        return tuple(
+            ModelDiagnostic(language, package, spacy.util.is_package(package))
+            for language, package in models
+        )
+    except Exception:
+        return tuple(
+            ModelDiagnostic(language, package, False)
+            for language, package in models
+        )

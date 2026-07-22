@@ -54,6 +54,18 @@ def test_missing_and_invalid_writes_use_safe_errors(tmp_path: Path) -> None:
             store.write_unlocked(CONVERSATION_ID, b"")
 
 
+def test_store_lists_canonical_vaults_and_deletes_idempotently(tmp_path: Path) -> None:
+    store = AtomicVaultStore(tmp_path / "state")
+    with store.lock(CONVERSATION_ID):
+        store.write_unlocked(CONVERSATION_ID, b"ciphertext")
+    (store.root / "not-a-uuid.vault").write_bytes(b"ignored")
+
+    assert store.conversation_ids() == (CONVERSATION_ID,)
+    with store.lock(CONVERSATION_ID):
+        assert store.delete_unlocked(CONVERSATION_ID)
+        assert not store.delete_unlocked(CONVERSATION_ID)
+
+
 @pytest.mark.skipif(os.name == "nt", reason="POSIX permission assertion")
 def test_state_directory_and_vault_are_owner_only(tmp_path: Path) -> None:
     store = AtomicVaultStore(tmp_path / "state")
