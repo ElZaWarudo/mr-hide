@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-002 RU1 implementation gate
-- Result: RDM-001 is complete. The RDM-002 requirements, implementation plan, and three-review-unit work package are created, reviewed inline, and checker-valid; RU1 is ready to start.
+- Phase: RDM-002 RU1 local release gate
+- Result: RDM-001 is complete. RDM-002 RU1 implementation, verification, code review, security review, build, and clean-wheel smoke passed on `codex/privacy-transformation-core`; local integration is the remaining RU1 step.
 - Primary artifact: `docs/plans/2026-07-22-002-feat-reversible-privacy-conversation-core-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -125,9 +125,12 @@ review_threshold: P0-P2
 - RDM-002 artifact result: the plan preserves the accepted R9-R34 behavior while separating provider-neutral detection/transformation, encrypted state, and policy lifecycle into three review units. Official Presidio, cryptography, and tiktoken documentation grounded current dependency/API assumptions.
 - RDM-002 plan review result: passed inline because repository instructions require sequential main-thread execution. The review replaced an unprovable generic rollback claim with stale-writer protection, added bounded custom-regex execution, canonical conversation identifiers, and explicit handling for raw text colliding with an existing substitute.
 - RDM-002 package checker: passed with RU1 selected for execution and local-only PR metadata retained solely for checker/audit compatibility.
+- RDM-002 RU1 implementation result: provider-neutral immutable mapping models, deterministic overlap/normalization, collision-safe compact aliases, compatibility surrogates, explicit cost metrics, longest-match restoration, Presidio English/Spanish integration, timeout-bounded technical-secret recognizers, declarative custom recognizers, and a safe default composite detector are complete.
+- RDM-002 RU1 verification result: 141 hermetic tests passed on lock-resolved Python 3.11 and 3.13; 57 focused privacy/model tests passed locally, including three real Presidio tests with `en_core_web_sm==3.8.0` and `es_core_news_sm==3.8.0`; Ruff, strict mypy, lock validation, build, clean-wheel install/import smoke, dependency audit, and offline suffix-list evidence passed. The locked dependency graph reports no known vulnerabilities.
+- RDM-002 RU1 review result: confirmed issues were fixed for empty-detector fail-open, multiple-candidate collision escape, ambiguous/unknown/corrupt mapping restoration, recursive allocation denial of service, eager spaCy loading, unlabelled byte-vs-token costs, exception-cause leakage, implicit tiktoken resolution, and tldextract network updates. No P0-P2 findings remain.
 
 ## Exact Next Invocation
 
 ```text
-Implement RDM-002 RU1 from the reviewed plan on `codex/privacy-transformation-core`, verify and review it, then rebase and merge locally into `develop`. Do not push or create a PR.
+Commit the reviewed RU1 implementation/evidence, rebase `codex/privacy-transformation-core` onto local `develop`, and merge locally with `--no-ff`. Then start RU2 encrypted conversation vault. Do not push or create a PR.
 ```

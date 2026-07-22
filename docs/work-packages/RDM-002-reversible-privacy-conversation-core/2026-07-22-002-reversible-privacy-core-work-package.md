@@ -45,7 +45,7 @@ Implement the complete provider-neutral RDM-002 privacy core: multilingual Presi
 
 | Review unit | Status | Evidence |
 |---|---|---|
-| RU1 | pending | Starts after artifact/review gate. |
+| RU1 | ready-local-merge | Implementation and review passed: 141 hermetic tests on Python 3.11/3.13, 57 focused privacy/model tests, lint, types, lock, build, dependency audit, and real local English/Spanish Presidio evidence. |
 | RU2 | pending | Starts after RU1 local merge. |
 | RU3 | pending | Starts after RU2 local merge. |
 
