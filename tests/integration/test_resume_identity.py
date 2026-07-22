@@ -11,6 +11,11 @@ from mr_hide.clients import ClaudeAdapter, CodexAdapter
         (("resume", "codex-session-id"), "codex-session-id"),
         (("exec", "resume", "codex-exec-session-id"), "codex-exec-session-id"),
         (("resume", "--last"), None),
+        (("exec", "resume", "--json", "codex-option-session-id"), "codex-option-session-id"),
+        (
+            ("exec", "resume", "--model", "gpt-5", "codex-model-session-id"),
+            "codex-model-session-id",
+        ),
         (("--model", "gpt-5", "resume", "ordered-id", "prompt"), "ordered-id"),
     ],
 )

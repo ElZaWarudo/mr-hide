@@ -1,6 +1,6 @@
 # Traffic boundary
 
-Mr Hide RDM-001 mediates only the declared inference routes below:
+Mr Hide mediates only the declared inference routes below:
 
 - `/v1/messages`
 - `/v1/messages/count_tokens`
@@ -8,7 +8,9 @@ Mr Hide RDM-001 mediates only the declared inference routes below:
 
 The listener binds only to loopback. Requests preserve bodies, raw query bytes,
 status,
-stream order, and end-to-end headers after hop-by-hop filtering.
+stream order, and end-to-end headers after hop-by-hop filtering. OpenAI
+Responses request/response JSON and SSE use an explicit bounded field matrix;
+Anthropic routes remain byte-preserving until RDM-004.
 
 ## Outside the boundary
 
@@ -22,6 +24,8 @@ than claimed as protected.
 
 ## Privacy status
 
-RDM-001 performs no Presidio detection, alias substitution, restoration,
-encrypted mapping
-storage, or privacy-complete transformation. Those capabilities begin in RDM-002.
+Supported Codex `/v1/responses` traffic uses local detection, reversible
+substitution/restoration, encrypted conversation mappings, native resume
+bindings, retention, bypass, and the selected tool policy. Unknown protocol
+content is preserved without recursive inspection. `/v1/messages` and
+`/v1/messages/count_tokens` remain raw until their dedicated integration.

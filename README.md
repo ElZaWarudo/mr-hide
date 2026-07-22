@@ -2,8 +2,9 @@
 
 Mr Hide is an early-stage, local privacy boundary for supported coding clients.
 It ships a reviewed provider-neutral detection, reversible substitution, encrypted
-conversation-state, retention, bypass, and tool-policy core. The current proxy does
-**not** yet apply that core to OpenAI or Anthropic protocol payloads.
+conversation-state, retention, bypass, and tool-policy core. OpenAI Responses traffic
+from supported Codex versions is protected end to end; Anthropic Messages integration
+remains a later roadmap item.
 
 ## Development
 
@@ -28,9 +29,15 @@ The command can be invoked as either `mr-hide` or `python -m mr_hide`.
 Launcher-owned options and native client arguments have an explicit boundary:
 
 ```shell
-mr-hide codex --upstream https://api.example.test -- resume SESSION_ID
+mr-hide codex --upstream https://api.example.test --tool-policy safe-tool-calls -- resume SESSION_ID
 mr-hide claude --upstream https://api.example.test -- --resume SESSION_ID
 ```
+
+Codex supports `default`, `safe-tool-calls`, and `tool-compatibility` policies.
+The default protects conversational fields but deliberately leaves provider-bound tool
+data unchanged and prints `tool-data-unprotected`. `--bypass` additionally requires
+`--accept-bypass-warning`; both choices are visible for the execution. Native Codex
+resume UUIDs are hashed in the local binding registry and reuse the same encrypted vault.
 
 Run `mr-hide compatibility` for the candidate client ranges and evidence state.
 An untested client blocks by default; `--allow-untested` is a visible, one-run

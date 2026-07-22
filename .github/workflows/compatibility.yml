@@ -63,9 +63,24 @@ jobs:
       - name: Install exact client package
         shell: bash
         run: npm install --global "${{ matrix.package }}@${{ matrix.version }}"
-      - name: Verify exact client contract
+      - name: Install Secret Service runtime
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes dbus-x11 gnome-keyring
+      - name: Verify exact client contract on Windows
+        if: runner.os == 'Windows'
         shell: bash
         env:
           MR_HIDE_EXPECT_CODEX_VERSION: ${{ matrix.client == 'codex' && matrix.version || '' }}
           MR_HIDE_EXPECT_CLAUDE_VERSION: ${{ matrix.client == 'claude' && matrix.version || '' }}
         run: python -m uv run --locked python -m pytest "tests/compatibility/test_${{ matrix.client }}_contract.py" -m compatibility
+      - name: Verify exact client contract on Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          MR_HIDE_EXPECT_CODEX_VERSION: ${{ matrix.client == 'codex' && matrix.version || '' }}
+          MR_HIDE_EXPECT_CLAUDE_VERSION: ${{ matrix.client == 'claude' && matrix.version || '' }}
+        run: |
+          dbus-run-session -- bash -euo pipefail -c '
+            printf "test-password\n" | gnome-keyring-daemon --unlock
+            python -m uv run --locked python -m pytest "tests/compatibility/test_${{ matrix.client }}_contract.py" -m compatibility
+          '

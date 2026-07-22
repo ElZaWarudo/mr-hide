@@ -169,3 +169,93 @@ def test_cli_propagates_supervised_child_exit_code(monkeypatch: pytest.MonkeyPat
 
     assert result.exit_code == 23
     assert result.output == ""
+
+
+def test_codex_policy_is_visible_and_passed_to_runtime(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("mr_hide.cli.check_client_version", supported_check)
+    class Prepared:
+        bypassed = False
+
+    prepared = Prepared()
+    captured: dict[str, object] = {}
+
+    def prepare(
+        resume_identity: str | None,
+        tool_policy: object,
+        **kwargs: object,
+    ) -> object:
+        captured.update(
+            resume_identity=resume_identity,
+            tool_policy=tool_policy,
+            **kwargs,
+        )
+        return prepared
+
+    async def supervised(**kwargs: object) -> SupervisorResult:
+        assert kwargs["responses_runtime"] is prepared
+        return SupervisorResult(0, "http://127.0.0.1:40125", None)
+
+    monkeypatch.setattr("mr_hide.cli._prepare_codex_runtime", prepare)
+    monkeypatch.setattr("mr_hide.cli.supervise_launch", supervised)
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "codex",
+            "--upstream",
+            "https://api.example.test",
+            "--tool-policy",
+            "safe-tool-calls",
+            "--",
+            "exec",
+            "prompt",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "conversation: protected" in result.output
+    assert "tool-policy: safe-tool-calls" in result.output
+    assert "tool-data-unprotected" not in result.output
+    assert str(captured["tool_policy"]) == "safe-tool-calls"
+
+
+def test_codex_bypass_requires_visible_acceptance(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("mr_hide.cli.check_client_version", supported_check)
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "codex",
+            "--upstream",
+            "https://api.example.test",
+            "--bypass",
+            "--",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--bypass requires --accept-bypass-warning" in result.output
+
+
+def test_codex_ambiguous_resume_is_rejected_before_state_creation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("mr_hide.cli.check_client_version", supported_check)
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "codex",
+            "--upstream",
+            "https://api.example.test",
+            "--",
+            "exec",
+            "resume",
+            "--last",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "explicit canonical session UUID" in result.output

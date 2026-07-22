@@ -1,6 +1,6 @@
 # Privacy core
 
-Mr Hide now ships a provider-neutral privacy core, but the current proxy does not yet apply it to OpenAI or Anthropic payload fields. RDM-003 and RDM-004 own that protocol integration.
+Mr Hide applies the privacy core to the declared OpenAI Responses JSON and SSE fields used by supported Codex versions. Unknown OpenAI fields and event types remain opaque, malformed eligible content blocks, and a whole body or stream commits at most one vault revision after complete transformation. Anthropic Messages payloads remain raw until RDM-004.
 
 ## Protection modes
 

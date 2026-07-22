@@ -43,4 +43,4 @@ def test_generated_evidence_is_current_and_redacted() -> None:
     )
     assert "COMPATIBILITY_KEY_SENTINEL" not in rendered
     assert "Return exactly CONTRACT_OK" not in rendered
-    assert "privacy-complete" in rendered
+    assert "Supported Codex" in rendered
