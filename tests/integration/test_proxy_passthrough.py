@@ -77,6 +77,41 @@ async def test_declared_route_preserves_request_and_response_contract() -> None:
 
 
 @pytest.mark.asyncio
+async def test_upstream_cookies_are_not_replayed_between_requests() -> None:
+    def response_factory(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            headers={"set-cookie": "upstream-secret=one; Path=/"},
+            stream=TrackedByteStream((b"ok",)),
+            request=request,
+        )
+
+    transport = RecordingTransport(response_factory)
+    app = create_proxy_app(
+        "https://upstream.test",
+        client_factory=client_factory(transport),
+    )
+
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app),
+            base_url="http://127.0.0.1",
+        ) as client,
+    ):
+        await client.post("/v1/responses", headers={"x-first": "one"})
+        client.cookies.clear()
+        await client.post("/v1/responses", headers={"x-second": "two"})
+
+    assert len(transport.requests) == 2
+    assert not any(
+        name.lower() == b"cookie"
+        for captured in transport.requests
+        for name, _value in captured.headers
+    )
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "path",
     ("/v1/responses", "/v1/messages", "/v1/messages/count_tokens"),
@@ -119,6 +154,10 @@ async def test_only_declared_post_routes_reach_upstream(path: str) -> None:
         "http://user:secret@upstream.test",
         "https://upstream.test/#fragment",
         "//upstream.test",
+        "http://[::1",
+        "http://upstream.test:99999",
+        "http://upstream test",
+        "http://upstream.test:0",
     ),
 )
 def test_invalid_upstream_is_rejected(upstream: str) -> None:

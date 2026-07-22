@@ -13,7 +13,8 @@ import pytest
 from starlette.applications import Starlette
 
 from mr_hide.clients.claude import ClaudeAdapter
-from mr_hide.runtime.models import ProxyRuntimeError, ProxyStartupError
+from mr_hide.runtime import supervisor as supervisor_module
+from mr_hide.runtime.models import ProcessCleanupError, ProxyRuntimeError, ProxyStartupError
 from mr_hide.runtime.processes import start_owned_process, terminate_owned_process
 from mr_hide.runtime.supervisor import ProxyServerTarget, supervise_launch
 
@@ -161,6 +162,65 @@ async def test_proxy_runtime_failure_terminates_owned_child(tmp_path: Path) -> N
 
 
 @pytest.mark.asyncio
+async def test_cleanup_failure_still_releases_proxy_and_socket(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    record = tmp_path / "cleanup-failure.json"
+    real_terminate = supervisor_module.terminate_owned_process
+
+    async def terminate_then_report_failure(
+        owned: supervisor_module.OwnedProcess,
+        *,
+        timeout: float,
+    ) -> None:
+        await real_terminate(owned, timeout=timeout)
+        raise ProcessCleanupError("cleanup fixture")
+
+    monkeypatch.setattr(
+        supervisor_module,
+        "terminate_owned_process",
+        terminate_then_report_failure,
+    )
+
+    endpoint: str | None = None
+
+    async def fail_runtime(
+        _app: Starlette,
+        target: ProxyServerTarget,
+        ready: asyncio.Event,
+        _stop: asyncio.Event,
+    ) -> None:
+        nonlocal endpoint
+        endpoint = target.endpoint
+        ready.set()
+        await _wait_for_file(record)
+        raise RuntimeError("runtime fixture")
+
+    with pytest.raises(ProcessCleanupError, match="cleanup fixture"):
+        await supervise_launch(
+            adapter=ClaudeAdapter(),
+            executable=sys.executable,
+            upstream="http://upstream.test",
+            client_args=(
+                str(FIXTURE),
+                "--runtime-record",
+                str(record),
+                "--sleep",
+                "60",
+            ),
+            parent_env=os.environ,
+            shutdown_timeout=0.2,
+            server_serve=fail_runtime,
+        )
+
+    captured = json.loads(record.read_text(encoding="utf-8"))
+    await _wait_for_process_exit(int(captured["pid"]))
+    assert endpoint is not None
+    _assert_port_released(endpoint)
+
+
+@pytest.mark.asyncio
 async def test_supervisor_cancellation_releases_child_and_socket(tmp_path: Path) -> None:
     record = tmp_path / "cancelled.json"
     task = asyncio.create_task(
@@ -191,6 +251,62 @@ async def test_supervisor_cancellation_releases_child_and_socket(tmp_path: Path)
 
     await _wait_for_process_exit(int(captured["pid"]))
     _assert_port_released(str(captured["endpoint"]))
+
+
+@pytest.mark.asyncio
+async def test_cancelling_server_wrapper_does_not_orphan_uvicorn_task(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    entered = asyncio.Event()
+    cancelled = asyncio.Event()
+
+    class FakeManagedServer:
+        def __init__(self, _config: object, _ready: asyncio.Event) -> None:
+            self.should_exit = False
+
+        async def serve(self, *, sockets: list[socket.socket]) -> None:
+            assert sockets
+            entered.set()
+            try:
+                await asyncio.Event().wait()
+            except asyncio.CancelledError:
+                cancelled.set()
+                raise
+
+    monkeypatch.setattr(supervisor_module, "_ManagedServer", FakeManagedServer)
+    target = supervisor_module.reserve_loopback_target()
+    task = asyncio.create_task(
+        supervisor_module.serve_uvicorn(
+            Starlette(),
+            target,
+            asyncio.Event(),
+            asyncio.Event(),
+        )
+    )
+    try:
+        await asyncio.wait_for(entered.wait(), timeout=1)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        await asyncio.wait_for(cancelled.wait(), timeout=1)
+    finally:
+        target.close()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows exclusive-bind semantics")
+def test_reserved_windows_port_rejects_reuseaddr_competitor() -> None:
+    from mr_hide.runtime.socket import reserve_loopback_target
+
+    target = reserve_loopback_target()
+    parsed = urlsplit(target.endpoint)
+    assert parsed.hostname is not None and parsed.port is not None
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as competitor:
+            competitor.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            with pytest.raises(OSError):
+                competitor.bind((parsed.hostname, parsed.port))
+    finally:
+        target.close()
 
 
 def _assert_port_released(endpoint: str) -> None:

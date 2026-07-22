@@ -68,6 +68,10 @@ async def serve_uvicorn(
         stop_task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await stop_task
+        if not server_task.done():
+            server.should_exit = True
+            server_task.cancel()
+        await asyncio.gather(server_task, return_exceptions=True)
 
 
 async def supervise_launch(
@@ -83,11 +87,12 @@ async def supervise_launch(
 ) -> SupervisorResult:
     """Run a configured client only while its loopback proxy remains healthy."""
 
+    app = create_proxy_app(upstream)
     target = reserve_loopback_target()
     ready = asyncio.Event()
     stop = asyncio.Event()
     server_task: asyncio.Future[None] = asyncio.ensure_future(
-        server_serve(create_proxy_app(upstream), target, ready, stop)
+        server_serve(app, target, ready, stop)
     )
     child: OwnedProcess | None = None
     child_wait: asyncio.Task[int] | None = None
@@ -118,15 +123,24 @@ async def supervise_launch(
             resume_identity=launch.resume_identity,
         )
     finally:
-        if child is not None and child.process.returncode is None:
-            await terminate_owned_process(child, timeout=shutdown_timeout)
-        if child_wait is not None and not child_wait.done():
-            child_wait.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await child_wait
-        stop.set()
-        await _stop_server(server_task, shutdown_timeout)
-        target.close()
+        cleanup_error: BaseException | None = None
+        try:
+            if child is not None and child.process.returncode is None:
+                await terminate_owned_process(child, timeout=shutdown_timeout)
+        except BaseException as error:
+            cleanup_error = error
+        finally:
+            if child_wait is not None and not child_wait.done():
+                child_wait.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await child_wait
+            stop.set()
+            try:
+                await _stop_server(server_task, shutdown_timeout)
+            finally:
+                target.close()
+        if cleanup_error is not None:
+            raise cleanup_error
 
 
 async def _await_server_start(

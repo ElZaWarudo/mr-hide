@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import socket
 from dataclasses import dataclass
 
@@ -22,7 +23,10 @@ def reserve_loopback_target() -> ProxyServerTarget:
 
     reserved = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        reserved.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if os.name == "nt":
+            reserved.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        else:
+            reserved.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         reserved.bind(("127.0.0.1", 0))
         host, port = reserved.getsockname()[:2]
         return ProxyServerTarget(reserved, f"http://{host}:{port}")

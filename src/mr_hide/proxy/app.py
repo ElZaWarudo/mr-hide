@@ -21,10 +21,19 @@ class ProxyConfigurationError(ValueError):
 def validate_upstream_url(value: str) -> str:
     """Validate the shared CLI/runtime upstream boundary without echoing its value."""
 
-    parsed = urlsplit(value)
+    try:
+        parsed = urlsplit(value)
+        port = parsed.port
+        httpx.URL(value)
+    except (httpx.InvalidURL, UnicodeError, ValueError) as error:
+        raise ProxyConfigurationError(
+            "The upstream must be a valid HTTP(S) URL without userinfo or a fragment."
+        ) from error
     if (
         parsed.scheme not in {"http", "https"}
         or parsed.hostname is None
+        or any(character.isspace() for character in parsed.hostname)
+        or port == 0
         or parsed.username is not None
         or parsed.password is not None
         or parsed.fragment

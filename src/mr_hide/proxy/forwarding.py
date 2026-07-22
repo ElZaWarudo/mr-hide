@@ -56,7 +56,9 @@ async def forward_request(request: Request) -> Response:
     except ProxyTargetError:
         return PlainTextResponse("Invalid request target.", status_code=400)
 
-    upstream_request = client.build_request(
+    # Construct the request directly so the lifespan-scoped client cannot merge
+    # defaults or replay cookies learned from an earlier upstream response.
+    upstream_request = httpx.Request(
         request.method,
         target,
         headers=filter_request_headers(request.headers.raw),
