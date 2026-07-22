@@ -1,0 +1,16 @@
+schema_version = 1
+
+[clients.codex]
+display_name = "Codex"
+executable = "codex"
+version_args = ["--version"]
+supported = ">=0.144.4,<0.146.0"
+evidence_status = "candidate"
+evidence_note = "Candidate range; real-client Windows/Linux evidence is required before release support is advertised."
+[clients.claude]
+display_name = "Claude Code"
+executable = "claude"
+version_args = ["--version"]
+supported = ">=2.1.216,<=2.1.217"
+evidence_status = "candidate"
+evidence_note = "Candidate range; real-client Windows/Linux evidence is required before release support is advertised."
