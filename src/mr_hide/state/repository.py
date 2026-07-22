@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
 from mr_hide.state.codec import VaultCodec
 from mr_hide.state.keys import MasterKeyProvider
-from mr_hide.state.models import ConversationState, VaultError, parse_conversation_id
+from mr_hide.state.models import (
+    ConversationState,
+    VaultError,
+    parse_conversation_id,
+    require_utc,
+)
 from mr_hide.state.store import AtomicVaultStore
 
 
@@ -36,6 +42,25 @@ class VaultRepository:
         parsed = parse_conversation_id(conversation_id)
         with self._store.lock(parsed):
             return self._load_unlocked(parsed)
+
+    def conversation_ids(self) -> tuple[UUID, ...]:
+        return self._store.conversation_ids()
+
+    def delete_if_inactive(
+        self,
+        conversation_id: str | UUID,
+        *,
+        inactive_since: datetime,
+    ) -> bool:
+        parsed = parse_conversation_id(conversation_id)
+        cutoff = require_utc(inactive_since)
+        with self._store.lock(parsed):
+            if not self._store.exists_unlocked(parsed):
+                return False
+            current = self._load_unlocked(parsed)
+            if current.last_activity > cutoff:
+                return False
+            return self._store.delete_unlocked(parsed)
 
     def save(self, state: ConversationState, *, expected_revision: int) -> None:
         conversation_id = parse_conversation_id(state.conversation_id)
