@@ -116,3 +116,9 @@ def test_valid_preexisting_key_decodes_exactly(tmp_path: Path) -> None:
     backend = ApprovedKeyring(returned_value=encoded)
 
     assert manager(tmp_path, backend).load_existing() == MASTER_KEY
+
+
+@pytest.mark.parametrize(("service", "account"), (("", "account"), ("service", "")))
+def test_keyring_identity_must_be_bounded(service: str, account: str, tmp_path: Path) -> None:
+    with pytest.raises(VaultError, match="keyring-identity-invalid"):
+        MasterKeyManager(tmp_path, service=service, account=account)
