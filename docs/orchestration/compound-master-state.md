@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-003 RU1 implementation gate
-- Result: RDM-001 and RDM-002 are locally integrated. The RDM-003 plan and two-unit work package passed inline product, feasibility, coherence, scope, security, adversarial, and bundled checker review; RU1 Responses protocol transformers are selected.
+- Phase: RDM-003 RU1 local release gate
+- Result: RDM-001 and RDM-002 are locally integrated. RDM-003 RU1 implements reviewed, bounded OpenAI Responses JSON/SSE transformations and has passed its verification, security, and adversarial gates; it is ready for a local-only merge into `develop`.
 - Primary artifact: `docs/plans/2026-07-22-003-feat-codex-openai-responses-protection-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -146,9 +146,13 @@ review_threshold: P0-P2
 - RDM-003 artifact result: current official OpenAI Responses input/tool and streaming-event references plus pinned local Codex evidence define an explicit field/event matrix. Unknown structures remain opaque, while declared tool definitions and strict inner function/MCP argument JSON receive policy-aware traversal.
 - RDM-003 plan review result: passed inline under the repository's sequential-agent rule. The review added strict inner-JSON handling to avoid invalid escaped arguments, ordered SSE withholding so later events cannot overtake buffered sensitive deltas, explicit error-message restoration, bounded parsing, and a no-invented-counting-route rule.
 - RDM-003 package result: two serial units isolate pure bounded JSON/SSE transformers from native session binding and proxy/CLI integration. The bundled checker passed; its generated-artifact warning is addressed by keeping mechanically checked compatibility evidence beside the RU2 runtime it attests.
+- RDM-003 RU1 implementation result: explicit request/response JSON and SSE event matrices transform only declared conversational and tool surfaces. Outer and inner JSON reject duplicates and non-finite values, parsing and transformed output are bounded, unknown protocol subtrees/events remain opaque, and callback failures expose stable reason codes rather than source data.
+- RDM-003 RU1 streaming result: arbitrary transport chunking, LF/CRLF frames, delta/done aggregation, strict function/MCP argument JSON, output/content/reasoning/error events, and ordered withholding are covered. A malformed, incomplete, mismatched, or oversized eligible stream emits no partial transformed output.
+- RDM-003 RU1 review result: the implementation includes transactional whole-body requirements for RU2 composition, strict known-event typing, complete added/done event handling, post-transform expansion limits, and leakage regressions. The only sentinel scan match is an intentional exception payload whose test proves it is absent from the public error. No P0-P2 finding remains.
+- RDM-003 RU1 verification result: 36 focused protocol tests passed; the full Python 3.13 suite passed 272 tests with one POSIX-only skip and four compatibility deselections; the Python 3.11 suite passed 267 tests with one skip and nine deselections. Ruff, strict mypy over 45 source files, `git diff --check`, sdist/wheel build, and clean-wheel import smoke passed.
 
 ## Exact Next Invocation
 
 ```text
-Commit the reviewed RDM-003 artifacts and implement RU1 strict Responses JSON/SSE transformations on `codex/responses-protocol-transformers`. Do not push or create a PR.
+Commit, rebase, and merge reviewed RDM-003 RU1 locally into `develop`, then create `codex/codex-responses-runtime` and implement RU2 conversation binding plus proxy/CLI integration. Do not push or create a PR.
 ```

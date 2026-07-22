@@ -43,7 +43,7 @@ Protect the exact OpenAI Responses JSON/SSE surfaces used by supported Codex ver
 
 | Review unit | Status | Evidence |
 |---|---|---|
-| RU1 | selected | Starts after artifact review and checker pass. |
+| RU1 | ready-local-merge | 36 focused protocol tests; 272 tests on Python 3.13 and 267 on Python 3.11; Ruff, strict mypy, build, clean-wheel smoke, and leakage scan passed. No P0-P2 finding remains. |
 | RU2 | pending | Starts after RU1 local merge. |
 
 ## Reviewability Diagnosis
