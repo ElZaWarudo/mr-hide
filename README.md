@@ -1,8 +1,9 @@
 # Mr Hide
 
 Mr Hide is an early-stage, local privacy boundary for supported coding clients.
-The current foundation validates client compatibility and preserves native client
-configuration; it does **not** yet transform or protect prompt traffic.
+It ships a reviewed provider-neutral detection, reversible substitution, encrypted
+conversation-state, retention, bypass, and tool-policy core. The current proxy does
+**not** yet apply that core to OpenAI or Anthropic protocol payloads.
 
 ## Development
 
@@ -14,6 +15,7 @@ python -m uv sync --locked --all-extras
 python -m uv run --locked python -m pytest -m "not compatibility and not system_keyring"
 python -m uv run --locked python -m ruff check .
 python -m uv run --locked python -m mypy src
+python -m uv run --locked python scripts/bench_aliases.py --check
 python -m uv run --locked python scripts/compatibility/render_evidence.py --check
 python -m uv run --locked python -m build
 python -m uv run --locked python scripts/verify_wheel.py dist
@@ -37,4 +39,5 @@ override and never changes the packaged compatibility manifest.
 See [client compatibility](docs/compatibility.md) for the required version/OS
 matrix and recorded evidence. See [traffic boundary](docs/traffic-boundary.md)
 for the routes Mr Hide mediates and the authentication, telemetry, update, and
-tool traffic it does not claim to protect.
+tool traffic it does not claim to protect. See [privacy core](docs/privacy-core.md)
+for protection modes, explicit default-tool risk, encrypted retention, and bypass.
