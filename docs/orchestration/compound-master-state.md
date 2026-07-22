@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-004 RU1 implementation gate
-- Result: RDM-001 through RDM-003 are locally integrated. The RDM-004 plan and two-unit work package define strict Anthropic Messages/count/SSE transformation followed by Claude-native session binding and runtime integration; RU1 pure protocol transformers are selected.
+- Phase: RDM-004 RU1 local release gate
+- Result: RDM-001 through RDM-003 are locally integrated. RDM-004 RU1 strict Anthropic Messages/count JSON and SSE transformers are implemented, reviewed, and verified; the remaining action is the authorized local rebase and merge before RU2.
 - Primary artifact: `docs/plans/2026-07-22-004-feat-claude-anthropic-messages-protection-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -28,7 +28,7 @@ review_threshold: P0-P2
 - Git repository: yes; remote `origin` is configured
 - Integration base: local `develop` at `af00f04`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
 - Active artifact/implementation branch: `codex/anthropic-messages-protection`, created from local `develop` after the RDM-003 closeout
-- Working tree before RDM-003 artifacts: clean at `89b9487`; the current diff is limited to the RDM-003 plan, package, and orchestration state
+- Working tree at the RU1 release gate: reviewed RDM-004 Messages transformer source, tests, wheel smoke, work-package evidence, and orchestration state only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
@@ -163,9 +163,13 @@ review_threshold: P0-P2
 - RDM-004 artifact result: official Anthropic Messages, streaming, token-counting, and Claude Code CLI references ground the explicit JSON/SSE matrix and the documented canonical `--session-id` launch mechanism. New sessions can be bound before process start; ambiguous picker/name/continue forms remain unsupported and fail closed.
 - RDM-004 plan review result: passed inline under the repository's sequential-agent rule. The design keeps protocol field knowledge out of the provider-neutral transaction, applies the same protected representation to count requests, withholds partial tool JSON until `content_block_stop`, and rejects session conflicts before child launch.
 - RDM-004 package result: two serial units isolate pure bounded Messages/count/SSE parsers from shared-transaction extraction, Claude binding, proxy/CLI composition, and compatibility evidence.
+- RDM-004 RU1 implementation result: strict duplicate-safe and non-finite-safe JSON transforms cover declared Anthropic system, message text, tool use/result, document, search-result, tool-definition, response text/tool, and error surfaces while preserving binary, thinking, metadata, and unknown structures as opaque data. Token-count requests reuse the same request transform without introducing provider state.
+- RDM-004 RU1 streaming result: bounded whole-stream withholding supports LF/CRLF framing, arbitrary transport chunks, declared event/type matching, indexed content-block lifecycles, text-delta aggregation, and strict partial tool-input JSON aggregation. Unknown events remain byte-exact, and malformed, incomplete, oversized, mismatched, or out-of-order eligible streams emit no transformed prefix.
+- RDM-004 RU1 review result: an adversarial pass found that accumulated `input_json_delta.partial_json` needed its own pre-transform byte, Unicode, and depth constraints. The implementation and a deep-partial regression now enforce those bounds before recursive tool transformation. No P0-P2 finding remains.
+- RDM-004 RU1 verification result: 23 focused Messages tests and 66 combined Messages/Responses protocol tests passed. The full Python 3.13 suite passed 314 tests with one POSIX-only skip and four compatibility deselections; Python 3.11 passed 309 tests with one skip and nine deselections. Ruff, strict mypy over 50 source files, `git diff --check`, sdist/wheel build, and clean-wheel protocol import smoke passed.
 
 ## Exact Next Invocation
 
 ```text
-Commit the reviewed RDM-004 artifacts and implement RU1 strict Anthropic Messages/count JSON and SSE transformations on `codex/anthropic-messages-protection`. Do not push or create a PR.
+Commit the reviewed RDM-004 RU1 implementation, rebase `codex/anthropic-messages-protection` onto local `develop`, merge it locally with `--no-ff`, then create `codex/claude-messages-runtime` for RU2. Do not push or create a PR.
 ```
