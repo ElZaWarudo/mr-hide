@@ -12,9 +12,11 @@ license = { text = "MIT" }
 authors = [{ name = "Mr Hide contributors" }]
 dependencies = [
   "click>=8.1,<9",
+  "cryptography>=49,<50",
   "httpx>=0.28,<1",
   "keyring>=25.6,<26",
   "packaging>=24.2,<27",
+  "portalocker>=3.2,<4",
   "presidio-analyzer>=2.2.360,<3",
   "pyyaml>=6.0.2,<7",
   "regex>=2025.7,<2027",
