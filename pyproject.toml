@@ -8,8 +8,20 @@ version = "0.1.0"
 description = "Token-aware local privacy boundary for supported coding clients"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Mr Hide contributors" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
 dependencies = [
   "click>=8.1,<9",
   "cryptography>=49,<50",
@@ -42,7 +54,7 @@ dev = [
 mr-hide = "mr_hide.cli:main"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/mr_hide", "tests", "scripts", "README.md", "pyproject.toml"]
+include = ["src/mr_hide", "tests", "scripts", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mr_hide"]

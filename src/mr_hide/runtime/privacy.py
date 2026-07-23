@@ -74,6 +74,7 @@ class PrivacyRuntime:
             policy, Direction.TO_PROVIDER, ContentKind.CONVERSATION
         ).substitution_mode
         if resume_identity is None:
+            _cleanup_expired(service)
             conversation_id = identifier_factory()
             result = service.create(
                 ConversationState.new(conversation_id, mode=expected_mode, now=clock())
@@ -97,6 +98,8 @@ class PrivacyRuntime:
             native_identity = resume_identity
         if result.status not in {ConversationStatus.PROTECTED, ConversationStatus.BYPASSED}:
             raise PrivacyRuntimeError(result.reason or "conversation-unavailable")
+        if resume_identity is not None:
+            _cleanup_expired(service)
         if bypass and result.status is not ConversationStatus.BYPASSED:
             result = service.accept_bypass(
                 conversation_id, warning_accepted=bypass_warning_accepted
@@ -146,6 +149,13 @@ class PrivacyRuntime:
             direction=direction,
             now=now,
         )
+
+
+def _cleanup_expired(service: ConversationService) -> None:
+    try:
+        service.cleanup_expired()
+    except VaultError as error:
+        raise PrivacyRuntimeError(error.reason) from None
 
 
 class PrivacyTransaction:
