@@ -12,6 +12,7 @@ import uvicorn
 from starlette.applications import Starlette
 
 from mr_hide.clients.base import ClientAdapter
+from mr_hide.protocols.messages.handler import MessagesRuntime
 from mr_hide.protocols.responses.handler import ResponsesRuntime
 from mr_hide.proxy.app import create_proxy_app
 from mr_hide.runtime.models import ProxyRuntimeError, ProxyStartupError, SupervisorResult
@@ -86,10 +87,16 @@ async def supervise_launch(
     shutdown_timeout: float = 5.0,
     server_serve: ProxyServerServe = serve_uvicorn,
     responses_runtime: ResponsesRuntime | None = None,
+    messages_runtime: MessagesRuntime | None = None,
+    launcher_args: Sequence[str] = (),
 ) -> SupervisorResult:
     """Run a configured client only while its loopback proxy remains healthy."""
 
-    app = create_proxy_app(upstream, responses_runtime=responses_runtime)
+    app = create_proxy_app(
+        upstream,
+        responses_runtime=responses_runtime,
+        messages_runtime=messages_runtime,
+    )
     target = reserve_loopback_target()
     ready = asyncio.Event()
     stop = asyncio.Event()
@@ -106,7 +113,8 @@ async def supervise_launch(
             client_args=client_args,
             parent_env=parent_env,
         )
-        child = await start_owned_process(launch.argv, launch.env)
+        argv = (launch.argv[0], *launcher_args, *launch.argv[1:])
+        child = await start_owned_process(argv, launch.env)
         child_wait = asyncio.create_task(child.process.wait())
         runtime_waiters = {
             cast(asyncio.Future[object], server_task),
@@ -122,7 +130,15 @@ async def supervise_launch(
         return SupervisorResult(
             exit_code=child_wait.result(),
             endpoint=target.endpoint,
-            resume_identity=launch.resume_identity,
+            resume_identity=(
+                launch.resume_identity
+                if launch.resume_identity is not None
+                else (
+                    messages_runtime.native_identity
+                    if messages_runtime is not None
+                    else None
+                )
+            ),
         )
     finally:
         cleanup_error: BaseException | None = None

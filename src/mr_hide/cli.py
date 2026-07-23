@@ -18,9 +18,11 @@ from mr_hide.diagnostics import environment_presence, model_presence
 from mr_hide.policy import ToolPolicy
 from mr_hide.privacy import PrivacyProcessingError
 from mr_hide.privacy.detection import build_local_detector
+from mr_hide.protocols.messages import MessagesRuntime, MessagesRuntimeError
 from mr_hide.protocols.responses import ResponsesRuntime, ResponsesRuntimeError
 from mr_hide.proxy import ProxyConfigurationError, validate_upstream_url
 from mr_hide.runtime.models import SupervisorError
+from mr_hide.runtime.privacy import PrivacyRuntime
 from mr_hide.runtime.supervisor import supervise_launch
 from mr_hide.security import probe_keyring
 from mr_hide.state import (
@@ -121,6 +123,32 @@ def _prepare_codex_runtime(
     )
 
 
+def _prepare_claude_runtime(
+    resume_identity: str | None,
+    tool_policy: ToolPolicy,
+    *,
+    bypass: bool,
+    accept_bypass_warning: bool,
+) -> MessagesRuntime:
+    state_directory = _state_directory()
+    repository = VaultRepository(
+        AtomicVaultStore(state_directory / "vaults"),
+        MasterKeyManager(
+            state_directory,
+            service=os.environ.get("MR_HIDE_KEYRING_SERVICE", "mr-hide-vault-v1"),
+        ),
+    )
+    return MessagesRuntime.prepare(
+        repository=repository,
+        registry=BindingRegistry(state_directory),
+        detector=build_local_detector(),
+        policy=tool_policy,
+        resume_identity=resume_identity,
+        bypass=bypass,
+        bypass_warning_accepted=accept_bypass_warning,
+    )
+
+
 def _preflight(
     ctx: click.Context,
     client: str,
@@ -142,7 +170,10 @@ def _preflight(
     except CompatibilityError as error:
         raise click.ClickException(str(error)) from error
     responses_runtime: ResponsesRuntime | None = None
-    if client == "codex":
+    messages_runtime: MessagesRuntime | None = None
+    privacy_runtime: PrivacyRuntime
+    launcher_args: tuple[str, ...] = ()
+    if client in {"codex", "claude"}:
         if bypass and not accept_bypass_warning:
             raise click.UsageError(
                 "--bypass requires --accept-bypass-warning.",
@@ -150,30 +181,59 @@ def _preflight(
             )
         try:
             resume_identity = adapter.resume_identity(client_args)
-            if "resume" in adapter.interpreted_args(client_args) and resume_identity is None:
+            interpreted = adapter.interpreted_args(client_args)
+            wants_resume = (
+                "resume" in interpreted
+                if client == "codex"
+                else any(
+                    value in {"--resume", "-r"} or value.startswith("--resume=")
+                    or (value.startswith("-r") and value != "-r")
+                    for value in interpreted
+                )
+            )
+            if wants_resume and resume_identity is None:
                 raise click.UsageError(
-                    "Codex resume requires an explicit canonical session UUID.",
+                    f"{client.title()} resume requires an explicit canonical session UUID.",
                     ctx,
                 )
-            responses_runtime = _prepare_codex_runtime(
-                resume_identity,
-                tool_policy,
-                bypass=bypass,
-                accept_bypass_warning=accept_bypass_warning,
-            )
+            if client == "codex":
+                responses_runtime = _prepare_codex_runtime(
+                    resume_identity,
+                    tool_policy,
+                    bypass=bypass,
+                    accept_bypass_warning=accept_bypass_warning,
+                )
+                privacy_runtime = responses_runtime
+            else:
+                messages_runtime = _prepare_claude_runtime(
+                    resume_identity,
+                    tool_policy,
+                    bypass=bypass,
+                    accept_bypass_warning=accept_bypass_warning,
+                )
+                privacy_runtime = messages_runtime
+                if resume_identity is None:
+                    if messages_runtime.native_identity is None:
+                        raise MessagesRuntimeError("native-identity-missing")
+                    launcher_args = ("--session-id", messages_runtime.native_identity)
         except click.UsageError:
             raise
-        except (PrivacyProcessingError, ResponsesRuntimeError, VaultError) as error:
+        except (
+            PrivacyProcessingError,
+            ResponsesRuntimeError,
+            MessagesRuntimeError,
+            VaultError,
+        ) as error:
             reason = getattr(error, "reason", "privacy-runtime-unavailable")
             raise click.ClickException(f"Privacy runtime unavailable ({reason}).") from None
         click.echo(
-            f"conversation: {'bypassed' if responses_runtime.bypassed else 'protected'}",
+            f"conversation: {'bypassed' if privacy_runtime.bypassed else 'protected'}",
             err=True,
         )
         click.echo(f"tool-policy: {tool_policy.value}", err=True)
         if tool_policy is ToolPolicy.DEFAULT:
             click.echo("warning: tool-data-unprotected", err=True)
-        if responses_runtime.bypassed:
+        if privacy_runtime.bypassed:
             click.echo("warning: conversation-bypass-active", err=True)
     try:
         result = asyncio.run(
@@ -184,6 +244,8 @@ def _preflight(
                 client_args=client_args,
                 parent_env=os.environ,
                 responses_runtime=responses_runtime,
+                messages_runtime=messages_runtime,
+                launcher_args=launcher_args,
             )
         )
     except SupervisorError as error:
@@ -241,16 +303,44 @@ def codex(
     context_settings={"ignore_unknown_options": True},
 )
 @_launch_options
+@click.option(
+    "--tool-policy",
+    type=click.Choice([item.value for item in ToolPolicy]),
+    default=ToolPolicy.DEFAULT.value,
+    show_default=True,
+    callback=_tool_policy_option,
+    help="Choose how provider-bound tool data is protected.",
+)
+@click.option("--bypass", is_flag=True, help="Bypass protection for this conversation.")
+@click.option(
+    "--accept-bypass-warning",
+    is_flag=True,
+    help="Acknowledge that bypass sends conversation data unchanged.",
+)
 @click.pass_context
 def claude(
     ctx: click.Context,
     upstream: str,
     allow_untested: bool,
     client_args: tuple[str, ...],
+    tool_policy: ToolPolicy,
+    bypass: bool,
+    accept_bypass_warning: bool,
 ) -> None:
     """Preflight Claude Code. Syntax: OPTIONS -- CLIENT_ARGS..."""
 
-    ctx.exit(_preflight(ctx, "claude", upstream, allow_untested, client_args))
+    ctx.exit(
+        _preflight(
+            ctx,
+            "claude",
+            upstream,
+            allow_untested,
+            client_args,
+            tool_policy,
+            bypass,
+            accept_bypass_warning,
+        )
+    )
 
 
 @cli.command("compatibility")
