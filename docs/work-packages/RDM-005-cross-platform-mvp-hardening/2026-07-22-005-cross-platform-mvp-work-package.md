@@ -1,7 +1,7 @@
 ---
 roadmap_item: RDM-005
 plan: docs/plans/2026-07-22-005-chore-cross-platform-mvp-hardening-plan.md
-status: ready
+status: merged-local
 integration_base: develop
 delivery: local-only
 review_units: [RU1]
@@ -91,3 +91,7 @@ The handoff is local-only. PR metadata is omitted; the passing unit is rebased a
 - Merge summary: `merge: integrate cross-platform MVP hardening`.
 
 Delivery policy: rebase the passing branch onto local `develop`, merge with `--no-ff`, retain the semantic branch locally, and perform no remote mutation.
+
+## Local Merge Result
+
+RU1 was rebased onto local `develop` and merged with `--no-ff` as `852d6b2`. The semantic branch remains local. No push, PR, Jira mutation, tag, publication, reviewer notification, or remote merge occurred.

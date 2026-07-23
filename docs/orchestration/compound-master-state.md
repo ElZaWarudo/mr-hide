@@ -1,7 +1,7 @@
 ---
 initiative: token-aware-privacy-proxy
 mode: full
-status: local-merge-ready
+status: complete
 date: 2026-07-22
 production: unknown
 jira_policy: optional
@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-005 reviewed implementation; local merge pending
-- Result: RDM-001 through RDM-004 are locally integrated. RDM-005 RU1 passed implementation, review, security, distribution, and local compatibility gates without claiming unobserved Linux success.
+- Phase: roadmap implementation complete; final local audit pending
+- Result: RDM-001 through RDM-005 are locally integrated into `develop`. RDM-005 RU1 passed implementation, review, security, distribution, local compatibility, rebase, and local merge gates without claiming unobserved Linux success.
 - Primary artifact: `docs/plans/2026-07-22-005-chore-cross-platform-mvp-hardening-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -27,8 +27,8 @@ review_threshold: P0-P2
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
 - Integration base: local `develop` at `7fcfa47`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
-- Active artifact/implementation branch: `codex/cross-platform-mvp-hardening`, created from local `develop` after the RDM-004 closeout
-- Working tree: reviewed RDM-005 implementation and evidence are ready for deterministic commits, rebase, and one local `--no-ff` merge into `develop`
+- Active closeout branch: `codex/rdm-005-closeout`, created from local `develop` after the RDM-005 implementation merge
+- Working tree: closeout evidence only; the implementation branch has no content difference from local `develop`
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
@@ -182,9 +182,10 @@ review_threshold: P0-P2
 - RDM-005 readiness result: the unified fast/full command validates the lock, Ruff, strict mypy, workflow YAML, hermetic/evidence tests, benchmark, generated evidence, whitespace, dependency export/audit, build, archive contents, and clean-wheel installation. It passed locally and reports `conditional` because the four required Linux client cells remain unobserved locally.
 - RDM-005 verification result: Python 3.13 passed 348 tests with two opt-in real-client and one POSIX-only skip. Hermetic Python 3.11 passed 341 tests with one POSIX-only skip and nine opt-in deselections. Exact Windows Codex `0.144.4` and Claude Code `2.1.217` launch/resume contracts passed after the cleanup change; earlier RDM-004 evidence retains the second pinned versions. The temporary Claude package and test-scoped state/keyring material were removed, and the default local state path remains absent.
 - RDM-005 review result: the pass added bounded vault enumeration and explicit workflow YAML validation after adversarial inspection. Stale binding pruning was deliberately not added because cross-file snapshots could delete a newly created binding; retaining a hashed stale record is safer. No P0-P2 correctness, reliability, performance, data-integrity, package-contract, race, or security finding remains.
+- RDM-005 local release result: four reviewed implementation commits (`465d048`, `60ef968`, `a76651a`, `bf045d4`) were rebased onto `develop` and merged locally with `--no-ff` as `852d6b2`. No remote mutation occurred.
 
 ## Exact Next Invocation
 
 ```text
-Commit RDM-005 in logical slices, rebase `codex/cross-platform-mvp-hardening` onto local `develop`, merge it locally with `--no-ff`, and audit refs/worktree. Do not push, publish, tag, or create a PR.
+Run the final local ref/worktree audit and record the closeout merge. No implementation work remains; do not push, publish, tag, or create a PR.
 ```
