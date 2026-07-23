@@ -9,8 +9,9 @@ Mr Hide mediates only the declared inference routes below:
 The listener binds only to loopback. Requests preserve bodies, raw query bytes,
 status,
 stream order, and end-to-end headers after hop-by-hop filtering. OpenAI
-Responses request/response JSON and SSE use an explicit bounded field matrix;
-Anthropic routes remain byte-preserving until RDM-004.
+Responses and Anthropic Messages request/response JSON and SSE use explicit
+bounded field matrices. Token-count requests use the same protected Messages
+representation without mutating state from structural count responses.
 
 ## Outside the boundary
 
@@ -24,8 +25,8 @@ than claimed as protected.
 
 ## Privacy status
 
-Supported Codex `/v1/responses` traffic uses local detection, reversible
-substitution/restoration, encrypted conversation mappings, native resume
-bindings, retention, bypass, and the selected tool policy. Unknown protocol
-content is preserved without recursive inspection. `/v1/messages` and
-`/v1/messages/count_tokens` remain raw until their dedicated integration.
+Supported Codex `/v1/responses` and Claude `/v1/messages` traffic use local
+detection, reversible substitution/restoration, encrypted conversation mappings,
+native resume bindings, retention, bypass, and the selected tool policy.
+`/v1/messages/count_tokens` shares the protected request snapshot. Unknown
+protocol content is preserved without recursive inspection.
