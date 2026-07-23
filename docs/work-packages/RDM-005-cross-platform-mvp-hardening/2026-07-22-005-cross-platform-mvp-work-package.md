@@ -40,7 +40,7 @@ Close the release-candidate operational, packaging, acceptance, and evidence gap
 
 | Review unit | Status | Evidence |
 |---|---|---|
-| RU1 | selected | Inline coherence/feasibility/security/scope review and bundled checker passed; the generated-artifact warning is justified by keeping readiness evidence with the behavior it attests. |
+| RU1 | ready-local-merge | Automatic cleanup, bounded vault enumeration, the 13-case cross-client acceptance matrix, workflow YAML, conditional generated evidence, dependency audit, build, archive inspection, and clean-wheel smoke passed. Python 3.13 passed 348 tests with three expected skips; hermetic Python 3.11 passed 341 with one expected skip and nine opt-in deselections. Exact Windows Codex 0.144.4 and Claude Code 2.1.217 launch/resume contracts passed after the runtime change. Inline correctness, maintainability, testing, standards, Python, reliability, performance, data-integrity, package-contract, race, security, and adversarial evidence review found no remaining P0-P2 issue. |
 
 ## Reviewability Diagnosis
 

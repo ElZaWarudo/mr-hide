@@ -1,7 +1,7 @@
 ---
 initiative: token-aware-privacy-proxy
 mode: full
-status: in-progress
+status: local-merge-ready
 date: 2026-07-22
 production: unknown
 jira_policy: optional
@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-005 artifact review gate
-- Result: RDM-001 through RDM-004 are locally integrated. The final roadmap package targets automatic retention housekeeping, unified cross-client acceptance, installable artifact integrity, operator usability, and conditional release-readiness evidence without claiming unobserved Linux success.
+- Phase: RDM-005 reviewed implementation; local merge pending
+- Result: RDM-001 through RDM-004 are locally integrated. RDM-005 RU1 passed implementation, review, security, distribution, and local compatibility gates without claiming unobserved Linux success.
 - Primary artifact: `docs/plans/2026-07-22-005-chore-cross-platform-mvp-hardening-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -28,7 +28,7 @@ review_threshold: P0-P2
 - Git repository: yes; remote `origin` is configured
 - Integration base: local `develop` at `7fcfa47`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
 - Active artifact/implementation branch: `codex/cross-platform-mvp-hardening`, created from local `develop` after the RDM-004 closeout
-- Working tree at the RDM-005 artifact gate: plan, one-unit work package, and orchestration state only
+- Working tree: reviewed RDM-005 implementation and evidence are ready for deterministic commits, rebase, and one local `--no-ff` merge into `develop`
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
@@ -45,10 +45,10 @@ review_threshold: P0-P2
 | plan | `compound-engineering:ce-plan` | resolved and used for RDM-001 and RDM-002 |
 | document_review | `compound-engineering:ce-doc-review` | resolved and used for roadmap, planning input, and implementation plan |
 | state_archivist | `krt-state-archivist` | available, not needed for compact initial state |
-| work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RU1, RU2, and RU3 complete |
-| code review | `compound-engineering:ce-code-review` | RU1, RU2, and RU3 passed after local fixes |
-| security review | `krt-security-sentinel` | RU1, RU2, and RU3 passed |
-| release | `krt-release-marshal` adapted to the user-mandated local-only flow | RDM-001 fully merged locally |
+| work | `compound-engineering:ce-work` in return-to-caller/implementation-only mode | RDM-005 RU1 complete |
+| code review | `compound-engineering:ce-code-review` | RDM-005 RU1 passed after local fixes |
+| security review | `krt-security-sentinel` | RDM-005 RU1 passed |
+| release | `krt-release-marshal` adapted to the user-mandated local-only flow | RDM-005 ready for local merge |
 
 ## Context Readiness
 
@@ -177,9 +177,14 @@ review_threshold: P0-P2
 - RDM-004 RU2 local release result: four reviewed commits (`5a36c69`, `ced33ab`, `6d5cc6e`, `14b3fa5`) were rebased onto `develop` and merged locally with `--no-ff` as `7fcfa47`. RDM-004 is complete; no push, PR, Jira mutation, reviewer notification, or remote merge occurred.
 - RDM-005 discovery result: packaging, CI, client matrices, benchmark, cleanup primitives, generated evidence, and operator docs already exist. Confirmed gaps are stale Claude/user instructions, no operational invocation of global retention cleanup, no unified cross-client/policy/failure/composition acceptance artifact, and no single conditional release-readiness command/report.
 - RDM-005 plan review result: passed inline under the repository's sequential-agent rule. The review keeps runtime change limited to invoking the existing locked cleanup primitive, treats readiness as conditional on unobserved Linux cells, and couples generated evidence to its acceptance/package checks so no partial slice can imply release readiness.
+- RDM-005 implementation result: every protected new launch invokes global retention cleanup before vault creation, and every successful resume refreshes its selected vault before cleanup. Vault enumeration is capped at 10,000 candidates, cleanup revalidates inactivity under each vault lock, and repository/key failures block launch with stable source-free reasons.
+- RDM-005 acceptance result: a 13-case Responses/Messages matrix covers all three tool policies, protected sentinels, default provider-bound tool exposure, restoration, bypass isolation, malformed fail-before-upstream behavior, unknown-field preservation, and base-path/query composition. Distribution metadata now includes the MIT license and typed public runtime/protocol resources; wheel and sdist inspection rejects local state, credentials, bytecode, and temporary artifacts.
+- RDM-005 readiness result: the unified fast/full command validates the lock, Ruff, strict mypy, workflow YAML, hermetic/evidence tests, benchmark, generated evidence, whitespace, dependency export/audit, build, archive contents, and clean-wheel installation. It passed locally and reports `conditional` because the four required Linux client cells remain unobserved locally.
+- RDM-005 verification result: Python 3.13 passed 348 tests with two opt-in real-client and one POSIX-only skip. Hermetic Python 3.11 passed 341 tests with one POSIX-only skip and nine opt-in deselections. Exact Windows Codex `0.144.4` and Claude Code `2.1.217` launch/resume contracts passed after the cleanup change; earlier RDM-004 evidence retains the second pinned versions. The temporary Claude package and test-scoped state/keyring material were removed, and the default local state path remains absent.
+- RDM-005 review result: the pass added bounded vault enumeration and explicit workflow YAML validation after adversarial inspection. Stale binding pruning was deliberately not added because cross-file snapshots could delete a newly created binding; retaining a hashed stale record is safer. No P0-P2 correctness, reliability, performance, data-integrity, package-contract, race, or security finding remains.
 
 ## Exact Next Invocation
 
 ```text
-Review the RDM-005 plan and one-unit work package, run the bundled checker, then implement RU1 on `codex/cross-platform-mvp-hardening`. Do not push, publish, tag, or create a PR.
+Commit RDM-005 in logical slices, rebase `codex/cross-platform-mvp-hardening` onto local `develop`, merge it locally with `--no-ff`, and audit refs/worktree. Do not push, publish, tag, or create a PR.
 ```
