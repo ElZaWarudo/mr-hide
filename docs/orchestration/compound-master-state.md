@@ -17,18 +17,18 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-004 RU2 local release gate
-- Result: RDM-001 through RDM-003 and RDM-004 RU1 are locally integrated. RU2 now provides provider-neutral privacy transactions, protected Claude Messages/count routing, launcher-owned native session binding, policy/bypass parity, and exact Windows client evidence; only the authorized local rebase and merge remain.
-- Primary artifact: `docs/plans/2026-07-22-004-feat-claude-anthropic-messages-protection-plan.md`
+- Phase: RDM-005 artifact review gate
+- Result: RDM-001 through RDM-004 are locally integrated. The final roadmap package targets automatic retention housekeeping, unified cross-client acceptance, installable artifact integrity, operator usability, and conditional release-readiness evidence without claiming unobserved Linux success.
+- Primary artifact: `docs/plans/2026-07-22-005-chore-cross-platform-mvp-hardening-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
 ## Preflight
 
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
-- Integration base: local `develop` at `de592d9`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
-- Active artifact/implementation branch: `codex/claude-messages-runtime`, created from local `develop` after the RDM-004 RU1 merge
-- Working tree at the RU2 release gate: reviewed shared transaction extraction, Claude binding/runtime, tests, generated compatibility evidence, operator documentation, work-package evidence, and orchestration state only
+- Integration base: local `develop` at `7fcfa47`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
+- Active artifact/implementation branch: `codex/cross-platform-mvp-hardening`, created from local `develop` after the RDM-004 closeout
+- Working tree at the RDM-005 artifact gate: plan, one-unit work package, and orchestration state only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
@@ -73,7 +73,8 @@ review_threshold: P0-P2
 | RDM-003 work package | `docs/work-packages/RDM-003-codex-openai-responses/2026-07-22-003-codex-responses-work-package.md` | bundled checker passed; RU1 selected before RU2 runtime integration |
 | RDM-004 implementation plan | `docs/plans/2026-07-22-004-feat-claude-anthropic-messages-protection-plan.md` | implementation-ready; inline review passed |
 | RDM-004 work package | `docs/work-packages/RDM-004-claude-anthropic-messages/2026-07-22-004-claude-messages-work-package.md` | two serial local review units; RU1 selected |
-| Later plans/packages | not created | dependency-ordered after RDM-004 gate |
+| RDM-005 implementation plan | `docs/plans/2026-07-22-005-chore-cross-platform-mvp-hardening-plan.md` | implementation-ready; inline coherence, feasibility, security, and scope review passed |
+| RDM-005 work package | `docs/work-packages/RDM-005-cross-platform-mvp-hardening/2026-07-22-005-cross-platform-mvp-work-package.md` | one cohesive local review unit; bundled checker passed with generated-evidence coupling justified |
 
 ## Blockers And Required Decisions
 
@@ -173,9 +174,12 @@ review_threshold: P0-P2
 - RDM-004 RU2 review result: confirmed issues were fixed for a runtime package import cycle, inherited CLI tests touching the real default state/keyring, loss of the first-identity race lock during extraction, binding before failed conversation creation was checked, ambiguous attached short resume forms, Claude fork handling, and protocol-mismatched size reasons. Temporary state and test keyring material created by the initial test seam were verified, removed, and prevented with isolated fixtures. No P0-P2 finding remains.
 - RDM-004 RU2 verification result: the final Python 3.13 suite passed 332 tests with two opt-in real-client skips and one POSIX-only skip; Python 3.11 passed 325 tests with one skip and nine compatibility/model/keyring deselections; a 92-test cross-protocol/runtime regression gate passed. Ruff, strict mypy over 52 source files, workflow YAML, generated-doc drift, `git diff --check`, sdist/wheel build, and clean-wheel public API smoke passed.
 - RDM-004 RU2 compatibility result: exact Claude Code `2.1.216` and `2.1.217` Windows packages passed protected non-interactive launch plus explicit native resume in isolated client/state directories with per-test OS-keyring services and dummy credentials. Captured Messages traffic excluded the original email sentinel. The Linux cells remain encoded in the pinned workflow and are not claimed as locally executed.
+- RDM-004 RU2 local release result: four reviewed commits (`5a36c69`, `ced33ab`, `6d5cc6e`, `14b3fa5`) were rebased onto `develop` and merged locally with `--no-ff` as `7fcfa47`. RDM-004 is complete; no push, PR, Jira mutation, reviewer notification, or remote merge occurred.
+- RDM-005 discovery result: packaging, CI, client matrices, benchmark, cleanup primitives, generated evidence, and operator docs already exist. Confirmed gaps are stale Claude/user instructions, no operational invocation of global retention cleanup, no unified cross-client/policy/failure/composition acceptance artifact, and no single conditional release-readiness command/report.
+- RDM-005 plan review result: passed inline under the repository's sequential-agent rule. The review keeps runtime change limited to invoking the existing locked cleanup primitive, treats readiness as conditional on unobserved Linux cells, and couples generated evidence to its acceptance/package checks so no partial slice can imply release readiness.
 
 ## Exact Next Invocation
 
 ```text
-Commit the reviewed RDM-004 RU2 implementation and evidence, rebase `codex/claude-messages-runtime` onto local `develop`, and merge it locally with `--no-ff`. Then begin the RDM-005 artifact gate on a new local feature branch. Do not push or create a PR.
+Review the RDM-005 plan and one-unit work package, run the bundled checker, then implement RU1 on `codex/cross-platform-mvp-hardening`. Do not push, publish, tag, or create a PR.
 ```
