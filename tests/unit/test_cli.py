@@ -120,7 +120,15 @@ def test_cli_rejects_client_endpoint_conflict(monkeypatch: pytest.MonkeyPatch) -
 def test_preflight_never_echoes_upstream_query(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("mr_hide.cli.check_client_version", supported_check)
 
-    async def supervised(**_kwargs: object) -> SupervisorResult:
+    class Prepared:
+        bypassed = False
+        native_identity = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+
+    monkeypatch.setattr("mr_hide.cli._prepare_claude_runtime", lambda *_args, **_kwargs: Prepared())
+
+    async def supervised(**kwargs: object) -> SupervisorResult:
+        assert kwargs["messages_runtime"].native_identity == Prepared.native_identity
+        assert kwargs["launcher_args"] == ("--session-id", Prepared.native_identity)
         return SupervisorResult(
             exit_code=0,
             endpoint="http://127.0.0.1:40123",
@@ -146,11 +154,19 @@ def test_preflight_never_echoes_upstream_query(monkeypatch: pytest.MonkeyPatch) 
 def test_cli_propagates_supervised_child_exit_code(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("mr_hide.cli.check_client_version", supported_check)
 
-    async def supervised(**_kwargs: object) -> SupervisorResult:
+    class Prepared:
+        bypassed = False
+        native_identity = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+
+    monkeypatch.setattr("mr_hide.cli._prepare_claude_runtime", lambda *_args, **_kwargs: Prepared())
+
+    async def supervised(**kwargs: object) -> SupervisorResult:
+        assert kwargs["messages_runtime"].native_identity == Prepared.native_identity
+        assert kwargs["launcher_args"] == ()
         return SupervisorResult(
             exit_code=23,
             endpoint="http://127.0.0.1:40124",
-            resume_identity="native-session",
+            resume_identity="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
         )
 
     monkeypatch.setattr("mr_hide.cli.supervise_launch", supervised)
@@ -163,12 +179,13 @@ def test_cli_propagates_supervised_child_exit_code(monkeypatch: pytest.MonkeyPat
             "https://api.example.test",
             "--",
             "--resume",
-            "native-session",
+            "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
         ],
     )
 
     assert result.exit_code == 23
-    assert result.output == ""
+    assert "conversation: protected" in result.output
+    assert "tool-policy: default" in result.output
 
 
 def test_codex_policy_is_visible_and_passed_to_runtime(
