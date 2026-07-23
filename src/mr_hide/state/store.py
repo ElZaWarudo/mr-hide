@@ -6,6 +6,7 @@ import os
 import tempfile
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
+from itertools import islice
 from pathlib import Path
 from uuid import UUID
 
@@ -14,6 +15,7 @@ import portalocker
 from mr_hide.state.models import VaultError
 
 _MAX_VAULT_BYTES = 32 * 1024 * 1024
+_MAX_VAULT_FILES = 10_000
 _LOCK_TIMEOUT_SECONDS = 30
 
 
@@ -43,9 +45,11 @@ class AtomicVaultStore:
     def conversation_ids(self) -> tuple[UUID, ...]:
         identifiers: list[UUID] = []
         try:
-            paths = tuple(self.root.glob("*.vault"))
+            paths = tuple(islice(self.root.glob("*.vault"), _MAX_VAULT_FILES + 1))
         except OSError:
             raise VaultError("vault-list-failed") from None
+        if len(paths) > _MAX_VAULT_FILES:
+            raise VaultError("vault-list-too-large")
         for path in paths:
             try:
                 identifier = UUID(path.stem)

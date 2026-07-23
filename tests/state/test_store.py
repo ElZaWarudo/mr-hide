@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
 from uuid import UUID
 
@@ -64,6 +65,25 @@ def test_store_lists_canonical_vaults_and_deletes_idempotently(tmp_path: Path) -
     with store.lock(CONVERSATION_ID):
         assert store.delete_unlocked(CONVERSATION_ID)
         assert not store.delete_unlocked(CONVERSATION_ID)
+
+
+def test_store_bounds_vault_enumeration(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    store = AtomicVaultStore(tmp_path / "state")
+    original_glob = Path.glob
+    candidates = tuple(store.root / f"{UUID(int=index)}.vault" for index in range(10_001))
+
+    def bounded_fixture(path: Path, pattern: str) -> Iterator[Path]:
+        if path == store.root and pattern == "*.vault":
+            return iter(candidates)
+        return original_glob(path, pattern)
+
+    monkeypatch.setattr(Path, "glob", bounded_fixture)
+
+    with pytest.raises(VaultError, match="vault-list-too-large"):
+        store.conversation_ids()
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX permission assertion")
