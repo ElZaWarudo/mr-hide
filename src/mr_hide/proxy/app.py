@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 import httpx
 from starlette.applications import Starlette
 
+from mr_hide.protocols.messages.handler import MessagesRuntime
 from mr_hide.protocols.responses.handler import ResponsesRuntime
 from mr_hide.proxy.routes import proxy_routes
 
@@ -58,6 +59,7 @@ def create_proxy_app(
     *,
     client_factory: HttpClientFactory = _default_client,
     responses_runtime: ResponsesRuntime | None = None,
+    messages_runtime: MessagesRuntime | None = None,
 ) -> Starlette:
     """Create one proxy instance with a lifespan-scoped upstream client."""
 
@@ -69,6 +71,7 @@ def create_proxy_app(
             app.state.http_client = client
             app.state.upstream_url = upstream_url
             app.state.responses_runtime = responses_runtime
+            app.state.messages_runtime = messages_runtime
             yield
 
     return Starlette(routes=proxy_routes(), lifespan=lifespan)

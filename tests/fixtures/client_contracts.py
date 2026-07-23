@@ -27,7 +27,7 @@ def _sse(
 
 
 async def responses(request: Request) -> StreamingResponse:
-    await request.body()
+    request.app.state.captured_bodies.append(await request.body())
     response = {
         "id": "resp_contract",
         "object": "response",
@@ -112,12 +112,12 @@ async def responses(request: Request) -> StreamingResponse:
 
 
 async def count_tokens(request: Request) -> JSONResponse:
-    await request.body()
+    request.app.state.captured_bodies.append(await request.body())
     return JSONResponse({"input_tokens": 1})
 
 
 async def messages(request: Request) -> StreamingResponse:
-    await request.body()
+    request.app.state.captured_bodies.append(await request.body())
     message = {
         "id": "msg_contract",
         "type": "message",
@@ -151,11 +151,13 @@ async def messages(request: Request) -> StreamingResponse:
     return _sse(events, named_events=True)
 
 
-def create_contract_app() -> Starlette:
-    return Starlette(
+def create_contract_app(captured_bodies: list[bytes] | None = None) -> Starlette:
+    app = Starlette(
         routes=[
             Route("/v1/responses", responses, methods=["POST"]),
             Route("/v1/messages", messages, methods=["POST"]),
             Route("/v1/messages/count_tokens", count_tokens, methods=["POST"]),
         ]
     )
+    app.state.captured_bodies = [] if captured_bodies is None else captured_bodies
+    return app

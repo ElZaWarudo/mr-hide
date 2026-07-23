@@ -1,6 +1,6 @@
 # Privacy core
 
-Mr Hide applies the privacy core to the declared OpenAI Responses JSON and SSE fields used by supported Codex versions. Unknown OpenAI fields and event types remain opaque, malformed eligible content blocks, and a whole body or stream commits at most one vault revision after complete transformation. Anthropic Messages payloads remain raw until RDM-004.
+Mr Hide applies the privacy core to the declared OpenAI Responses and Anthropic Messages JSON/SSE fields used by supported Codex and Claude Code versions. Unknown fields and event types remain opaque; malformed eligible content blocks fail closed; and a whole body or stream commits at most one vault revision after complete transformation. Anthropic token-count requests use the same protected representation, while structural count responses do not mutate mappings.
 
 ## Protection modes
 
@@ -16,6 +16,8 @@ All known privacy-processing and state failures block without returning raw or p
 Each conversation has a canonical UUID and an authenticated AES-256-GCM vault. A random installation master key is held by the approved operating-system keyring, while HKDF derives a separate key for each conversation. Copying the ciphertext directory alone does not provide the key or reveal original mapped values.
 
 Vault writes use an exclusive lock, revision check, same-directory temporary file, flush, fsync, and atomic replacement. State expires at 30 days of inactivity. Reuse before that boundary refreshes activity; at or after the boundary the ciphertext is deleted and the old mapping identity is reported expired rather than recreated.
+
+New Claude Code launches receive a launcher-owned canonical `--session-id`; explicit canonical `--resume`/`-r` reuses only its bound active vault. User-owned session IDs, `--continue`, session forks, names, and missing resume values are rejected because they cannot prove a unique mapping identity.
 
 Run `mr-hide doctor` to see redacted keyring and English/Spanish model availability. It reports package names and availability only; it does not display credentials, mappings, prompts, or model contents.
 

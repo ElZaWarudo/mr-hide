@@ -43,8 +43,8 @@ Protect the exact Anthropic Messages JSON/SSE and token-counting surfaces used b
 
 | Review unit | Status | Evidence |
 |---|---|---|
-| RU1 | ready-local-merge | Strict bounded Messages/count JSON and SSE transforms pass 23 focused tests, 66 cross-protocol tests, Python 3.13 (314 passed, 1 skipped), Python 3.11 (309 passed, 1 skipped), Ruff, strict mypy, build, and clean-wheel smoke. Review additionally bounded and depth-checked accumulated tool JSON before parsing. |
-| RU2 | pending | Starts after RU1 local merge. |
+| RU1 | merged-local | Strict bounded Messages/count JSON and SSE transforms passed 23 focused tests, 66 cross-protocol tests, Python 3.13 (314 passed, 1 skipped), Python 3.11 (309 passed, 1 skipped), Ruff, strict mypy, build, and clean-wheel smoke; merged locally as `de592d9`. |
+| RU2 | ready-local-merge | Provider-neutral transactions, launcher-owned Claude UUID binding, protected Messages/count routing, policy/bypass parity, generated evidence, and isolated real Claude 2.1.216/2.1.217 launch/resume contracts pass. Python 3.13: 332 passed, 3 skipped; Python 3.11: 325 passed, 1 skipped, 9 deselected. |
 
 ## Reviewability Diagnosis
 

@@ -11,6 +11,20 @@ from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response, StreamingResponse
 
 from mr_hide.policy import Direction
+from mr_hide.protocols.messages import (
+    MessagesRuntime,
+    MessagesRuntimeError,
+    MessagesTransformError,
+)
+from mr_hide.protocols.messages import (
+    transform_request_json as transform_messages_request,
+)
+from mr_hide.protocols.messages import (
+    transform_response_json as transform_messages_response,
+)
+from mr_hide.protocols.messages import (
+    transform_sse_bytes as transform_messages_sse,
+)
 from mr_hide.protocols.responses import (
     ResponsesRuntime,
     ResponsesRuntimeError,
@@ -61,6 +75,13 @@ async def forward_request(request: Request) -> Response:
     runtime = cast(ResponsesRuntime | None, request.app.state.responses_runtime)
     if request.url.path == "/v1/responses" and runtime is not None:
         return await _forward_protected_responses(request, runtime)
+    messages_runtime = cast(MessagesRuntime | None, request.app.state.messages_runtime)
+    if request.url.path in {"/v1/messages", "/v1/messages/count_tokens"} and messages_runtime:
+        return await _forward_protected_messages(
+            request,
+            messages_runtime,
+            count_only=request.url.path.endswith("/count_tokens"),
+        )
 
     client = cast(httpx.AsyncClient, request.app.state.http_client)
     upstream = cast(httpx.URL, request.app.state.upstream_url)
@@ -156,24 +177,90 @@ async def _forward_protected_responses(
     return response
 
 
-async def _bounded_request_body(request: Request) -> bytes:
+async def _forward_protected_messages(
+    request: Request,
+    runtime: MessagesRuntime,
+    *,
+    count_only: bool,
+) -> Response:
+    client = cast(httpx.AsyncClient, request.app.state.http_client)
+    upstream = cast(httpx.URL, request.app.state.upstream_url)
+    raw_path = cast(bytes, request.scope.get("raw_path", b""))
+    query = cast(bytes, request.scope.get("query_string", b""))
+    try:
+        target = build_upstream_url(upstream, raw_path, query)
+        original = await _bounded_request_body(
+            request, reason="messages-json-size-invalid"
+        )
+        outgoing = runtime.transaction(Direction.TO_PROVIDER)
+        protected = transform_messages_request(original, outgoing.transform)
+        outgoing.commit()
+    except ProxyTargetError:
+        return PlainTextResponse("Invalid request target.", status_code=400)
+    except (MessagesTransformError, MessagesRuntimeError) as error:
+        return PlainTextResponse(f"Protected request rejected ({error.reason}).", status_code=400)
+
+    upstream_request = httpx.Request(
+        request.method,
+        target,
+        headers=_rewritten_request_headers(request.headers.raw),
+        content=protected,
+    )
+    try:
+        upstream_response = await client.send(upstream_request, stream=True, follow_redirects=False)
+    except httpx.TimeoutException:
+        return PlainTextResponse("Upstream request timed out.", status_code=504)
+    except httpx.RequestError:
+        return PlainTextResponse("Upstream is unavailable.", status_code=502)
+
+    try:
+        payload = await _bounded_response_body(
+            upstream_response, reason="messages-response-too-large"
+        )
+        incoming = runtime.transaction(Direction.TO_LOCAL)
+        media_type = upstream_response.headers.get("content-type", "").split(";", 1)[0]
+        if media_type.strip().lower() == "text/event-stream":
+            restored = transform_messages_sse(payload, incoming.transform)
+        else:
+            restored = transform_messages_response(payload, incoming.transform)
+        if not count_only:
+            incoming.commit()
+    except (MessagesTransformError, MessagesRuntimeError, httpx.RequestError):
+        return PlainTextResponse("Protected upstream response rejected.", status_code=502)
+    finally:
+        await upstream_response.aclose()
+
+    response = Response(content=restored, status_code=upstream_response.status_code)
+    response.raw_headers = list(_rewritten_response_headers(upstream_response.headers.raw))
+    return response
+
+
+async def _bounded_request_body(
+    request: Request,
+    *,
+    reason: str = "responses-json-size-invalid",
+) -> bytes:
     chunks: list[bytes] = []
     size = 0
     async for chunk in request.stream():
         size += len(chunk)
         if size > _MAX_TRANSFORMED_RESPONSE_BYTES:
-            raise ResponsesRuntimeError("responses-json-size-invalid")
+            raise ResponsesRuntimeError(reason)
         chunks.append(chunk)
     return b"".join(chunks)
 
 
-async def _bounded_response_body(response: httpx.Response) -> bytes:
+async def _bounded_response_body(
+    response: httpx.Response,
+    *,
+    reason: str = "responses-response-too-large",
+) -> bytes:
     chunks: list[bytes] = []
     size = 0
     async for chunk in response.aiter_bytes():
         size += len(chunk)
         if size > _MAX_TRANSFORMED_RESPONSE_BYTES:
-            raise ResponsesRuntimeError("responses-response-too-large")
+            raise ResponsesRuntimeError(reason)
         chunks.append(chunk)
     return b"".join(chunks)
 

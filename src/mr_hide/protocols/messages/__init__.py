@@ -1,5 +1,6 @@
 """Strict Anthropic Messages JSON and SSE transformations."""
 
+from mr_hide.protocols.messages.handler import MessagesRuntime, MessagesRuntimeError
 from mr_hide.protocols.messages.json_body import (
     MessagesTransformError,
     transform_request_json,
@@ -8,6 +9,8 @@ from mr_hide.protocols.messages.json_body import (
 from mr_hide.protocols.messages.sse import transform_sse_bytes, transform_sse_stream
 
 __all__ = [
+    "MessagesRuntime",
+    "MessagesRuntimeError",
     "MessagesTransformError",
     "transform_request_json",
     "transform_response_json",

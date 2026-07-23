@@ -141,3 +141,26 @@ def test_native_boundary_stops_resume_and_conflict_interpretation() -> None:
         parent_env={},
     )
     assert spec.client_args == ("--", "--config", "openai_base_url=literal")
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ("--continue",),
+        ("-c",),
+        ("--session-id", "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"),
+        ("--session-id=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",),
+        ("--fork-session",),
+        ("--resume", "one", "-r", "two"),
+    ],
+)
+def test_claude_rejects_ambiguous_or_launcher_owned_session_flags(
+    args: tuple[str, ...],
+) -> None:
+    with pytest.raises(LaunchConflict):
+        ClaudeAdapter().build_launch_spec(
+            executable="claude",
+            endpoint="http://127.0.0.1:40002",
+            client_args=args,
+            parent_env={},
+        )

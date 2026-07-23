@@ -29,6 +29,8 @@ def test_codex_resume_identity(args: tuple[str, ...], expected: str | None) -> N
         (("--resume", "claude-session-id"), "claude-session-id"),
         (("-r", "claude-short-id"), "claude-short-id"),
         (("--resume=claude-inline-id",), "claude-inline-id"),
+        (("-r=claude-short-inline-id",), "claude-short-inline-id"),
+        (("-rclaude-short-attached-id",), "claude-short-attached-id"),
         (("--continue",), None),
         (("-c",), None),
     ],

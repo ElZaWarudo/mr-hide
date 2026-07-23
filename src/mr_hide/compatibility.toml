@@ -21,7 +21,7 @@ limitation = "Authentication, model discovery, telemetry, updates, and arbitrary
 client = "claude"
 versions = ["2.1.216", "2.1.217"]
 platforms = ["windows", "linux"]
-flow = "non-interactive Messages launch and native resume"
+flow = "protected Messages launch and native resume"
 routes = ["/v1/messages", "/v1/messages/count_tokens"]
 status = "required"
 limitation = "Authentication, telemetry, updates, and provider-bound tool egress are outside the mediated boundary."
@@ -40,9 +40,9 @@ date = "2026-07-22"
 client = "claude"
 version = "2.1.216"
 platform = "windows"
-flow = "non-interactive Messages launch and native resume"
+flow = "protected Messages launch and native resume"
 result = "pass"
-limitations = "Local candidate evidence only; the complete Windows/Linux boundary matrix remains required."
+limitations = "Protected JSON/SSE, launcher-owned session binding, and native resume passed locally; the complete Windows/Linux boundary matrix remains required."
 
 [[observed_evidence]]
 date = "2026-07-22"
@@ -58,9 +58,9 @@ date = "2026-07-22"
 client = "claude"
 version = "2.1.217"
 platform = "windows"
-flow = "non-interactive Messages launch and native resume"
+flow = "protected Messages launch and native resume"
 result = "pass"
-limitations = "Local candidate evidence only; the complete Windows/Linux boundary matrix remains required."
+limitations = "Protected JSON/SSE, launcher-owned session binding, and native resume passed locally; the complete Windows/Linux boundary matrix remains required."
 [clients.claude]
 display_name = "Claude Code"
 executable = "claude"

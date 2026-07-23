@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: RDM-004 RU1 local release gate
-- Result: RDM-001 through RDM-003 are locally integrated. RDM-004 RU1 strict Anthropic Messages/count JSON and SSE transformers are implemented, reviewed, and verified; the remaining action is the authorized local rebase and merge before RU2.
+- Phase: RDM-004 RU2 local release gate
+- Result: RDM-001 through RDM-003 and RDM-004 RU1 are locally integrated. RU2 now provides provider-neutral privacy transactions, protected Claude Messages/count routing, launcher-owned native session binding, policy/bypass parity, and exact Windows client evidence; only the authorized local rebase and merge remain.
 - Primary artifact: `docs/plans/2026-07-22-004-feat-claude-anthropic-messages-protection-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -26,9 +26,9 @@ review_threshold: P0-P2
 
 - Workspace: `C:/Users/Mayor/Documents/Caribbean/mr-hide`
 - Git repository: yes; remote `origin` is configured
-- Integration base: local `develop` at `af00f04`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
-- Active artifact/implementation branch: `codex/anthropic-messages-protection`, created from local `develop` after the RDM-003 closeout
-- Working tree at the RU1 release gate: reviewed RDM-004 Messages transformer source, tests, wheel smoke, work-package evidence, and orchestration state only
+- Integration base: local `develop` at `de592d9`, created from the matching `origin/master` seed and advanced only through reviewed local feature merges; it has no upstream
+- Active artifact/implementation branch: `codex/claude-messages-runtime`, created from local `develop` after the RDM-004 RU1 merge
+- Working tree at the RU2 release gate: reviewed shared transaction extraction, Claude binding/runtime, tests, generated compatibility evidence, operator documentation, work-package evidence, and orchestration state only
 - Repo instructions: user-supplied `AGENTS.md` compatibility instructions are active for this session; no repository `AGENTS.md` file exists
 - Production posture: `unknown`; no deployment or production evidence exists
 - Jira posture: optional; `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY` names are present without exposing values, but no issue key or mutation context has been selected; no Jira mutation is attempted in artifact mode
@@ -167,9 +167,15 @@ review_threshold: P0-P2
 - RDM-004 RU1 streaming result: bounded whole-stream withholding supports LF/CRLF framing, arbitrary transport chunks, declared event/type matching, indexed content-block lifecycles, text-delta aggregation, and strict partial tool-input JSON aggregation. Unknown events remain byte-exact, and malformed, incomplete, oversized, mismatched, or out-of-order eligible streams emit no transformed prefix.
 - RDM-004 RU1 review result: an adversarial pass found that accumulated `input_json_delta.partial_json` needed its own pre-transform byte, Unicode, and depth constraints. The implementation and a deep-partial regression now enforce those bounds before recursive tool transformation. No P0-P2 finding remains.
 - RDM-004 RU1 verification result: 23 focused Messages tests and 66 combined Messages/Responses protocol tests passed. The full Python 3.13 suite passed 314 tests with one POSIX-only skip and four compatibility deselections; Python 3.11 passed 309 tests with one skip and nine deselections. Ruff, strict mypy over 50 source files, `git diff --check`, sdist/wheel build, and clean-wheel protocol import smoke passed.
+- RDM-004 RU1 local release result: four reviewed commits (`5fcc1d6`, `b351a5c`, `c736259`, `6da938d`) were rebased onto `develop` and merged locally with `--no-ff` as `de592d9`. No push, PR, Jira mutation, reviewer notification, or remote merge occurred.
+- RDM-004 RU2 implementation result: the RDM-003 staged privacy transaction is now provider-neutral while Responses retains its own prompt-cache identity extraction. Claude creates and binds a launcher-owned canonical native UUID before child start, injects documented `--session-id` only for new sessions, and resumes only canonical UUIDs already bound to an active Claude vault. User-owned session IDs, `--continue`, forks, names, missing values, multiple resume forms, policy-mode changes, and cross-client bindings fail closed.
+- RDM-004 RU2 routing result: `/v1/messages` and `/v1/messages/count_tokens` transform requests through the strict RU1 matrix and commit the outgoing snapshot before upstream. JSON/SSE responses restore declared values only after complete bounded parsing; structural count responses never commit or refresh incoming state. Default, safe-tool-calls, tool-compatibility, and persistent bypass visibility match Codex behavior.
+- RDM-004 RU2 review result: confirmed issues were fixed for a runtime package import cycle, inherited CLI tests touching the real default state/keyring, loss of the first-identity race lock during extraction, binding before failed conversation creation was checked, ambiguous attached short resume forms, Claude fork handling, and protocol-mismatched size reasons. Temporary state and test keyring material created by the initial test seam were verified, removed, and prevented with isolated fixtures. No P0-P2 finding remains.
+- RDM-004 RU2 verification result: the final Python 3.13 suite passed 332 tests with two opt-in real-client skips and one POSIX-only skip; Python 3.11 passed 325 tests with one skip and nine compatibility/model/keyring deselections; a 92-test cross-protocol/runtime regression gate passed. Ruff, strict mypy over 52 source files, workflow YAML, generated-doc drift, `git diff --check`, sdist/wheel build, and clean-wheel public API smoke passed.
+- RDM-004 RU2 compatibility result: exact Claude Code `2.1.216` and `2.1.217` Windows packages passed protected non-interactive launch plus explicit native resume in isolated client/state directories with per-test OS-keyring services and dummy credentials. Captured Messages traffic excluded the original email sentinel. The Linux cells remain encoded in the pinned workflow and are not claimed as locally executed.
 
 ## Exact Next Invocation
 
 ```text
-Commit the reviewed RDM-004 RU1 implementation, rebase `codex/anthropic-messages-protection` onto local `develop`, merge it locally with `--no-ff`, then create `codex/claude-messages-runtime` for RU2. Do not push or create a PR.
+Commit the reviewed RDM-004 RU2 implementation and evidence, rebase `codex/claude-messages-runtime` onto local `develop`, and merge it locally with `--no-ff`. Then begin the RDM-005 artifact gate on a new local feature branch. Do not push or create a PR.
 ```
