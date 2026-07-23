@@ -39,8 +39,14 @@ def test_generated_evidence_is_current_and_redacted() -> None:
     assert completed.returncode == 0, completed.stderr
     rendered = "".join(
         (ROOT / path).read_text(encoding="utf-8")
-        for path in ("docs/compatibility.md", "docs/traffic-boundary.md")
+        for path in (
+            "docs/compatibility.md",
+            "docs/traffic-boundary.md",
+            "docs/release-readiness.md",
+        )
     )
     assert "COMPATIBILITY_KEY_SENTINEL" not in rendered
     assert "Return exactly CONTRACT_OK" not in rendered
     assert "Supported Codex" in rendered
+    assert "Conditional local pass" in rendered
+    assert "| claude | 2.1.217 | linux |" in rendered
