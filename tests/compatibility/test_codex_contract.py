@@ -71,7 +71,10 @@ async def test_pinned_codex_completes_responses_round_trip(
         stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=90)
 
     combined = stdout + stderr
-    assert process.returncode == 0, f"Codex exited with {process.returncode}"
+    assert process.returncode == 0, (
+        f"Codex exited with {process.returncode}:\n"
+        f"{combined.decode('utf-8', errors='replace')}"
+    )
     assert CONTRACT_REPLY.encode() in combined, combined.decode("utf-8", errors="replace")
     assert b"COMPATIBILITY_KEY_SENTINEL" not in combined
     thread_id = next(

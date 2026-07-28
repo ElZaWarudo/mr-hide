@@ -32,7 +32,10 @@ async def start_owned_process(
         process = await asyncio.create_subprocess_exec(
             *argv,
             env=dict(environment),
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            creationflags=cast(
+                int,
+                subprocess.__dict__["CREATE_NEW_PROCESS_GROUP"],
+            ),
         )
     else:
         process = await asyncio.create_subprocess_exec(
@@ -72,7 +75,7 @@ async def terminate_owned_process(owned: OwnedProcess, *, timeout: float) -> Non
 def _signal_group(process: asyncio.subprocess.Process) -> None:
     try:
         if os.name == "nt":
-            process.send_signal(signal.CTRL_BREAK_EVENT)
+            process.send_signal(cast(int, signal.__dict__["CTRL_BREAK_EVENT"]))
         else:
             _signal_posix_group(process.pid, "SIGTERM")
     except (ProcessLookupError, OSError):

@@ -85,6 +85,9 @@ async def _run_claude(
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, _stderr = await asyncio.wait_for(process.communicate(), timeout=90)
-    assert process.returncode == 0, f"Claude Code exited with {process.returncode}"
+    stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=90)
+    assert process.returncode == 0, (
+        f"Claude Code exited with {process.returncode}:\n"
+        f"{stderr.decode('utf-8', errors='replace')}"
+    )
     return stdout
