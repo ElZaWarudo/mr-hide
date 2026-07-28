@@ -11,6 +11,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.compatibility.evidence import (  # noqa: E402
+    load_evidence_manifest,
+    summarize_evidence,
+)
+
+COMPATIBILITY_MANIFEST = ROOT / "src" / "mr_hide" / "compatibility.toml"
 TIMEOUT_SECONDS = 900
 
 
@@ -83,6 +92,11 @@ def _find_tool(name: str) -> str | None:
     return str(sibling) if sibling.is_file() else None
 
 
+def _compatibility_evidence_complete() -> bool:
+    manifest = load_evidence_manifest(COMPATIBILITY_MANIFEST)
+    return summarize_evidence(manifest, repository_root=ROOT).complete
+
+
 def run(*, fast: bool) -> None:
     uv = _find_tool("uv")
     if uv is None:
@@ -134,8 +148,14 @@ def run(*, fast: bool) -> None:
                     (sys.executable, "scripts/verify_wheel.py", str(output)),
                 )
             )
-    print("release-readiness: local-pass")
-    print("cross-platform-status: conditional; required Linux CI cells are unobserved locally")
+    if _compatibility_evidence_complete():
+        print("release-readiness: pass")
+        print("cross-platform-status: verified; required Windows/Linux cells are recorded")
+    else:
+        print("release-readiness: local-pass")
+        print(
+            "cross-platform-status: conditional; required compatibility cells are pending"
+        )
 
 
 def main() -> None:

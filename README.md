@@ -6,7 +6,7 @@ Mr Hide preserves OpenAI Responses for Codex and Anthropic Messages for Claude C
 
 ## Install
 
-Mr Hide requires Python 3.11 or newer. Install the package and the exact English and Spanish spaCy models used by the release-candidate matrix:
+Mr Hide requires Python 3.11 or newer. Install the package and the exact English and Spanish spaCy models used by the supported compatibility matrix:
 
 ```shell
 python -m pip install .
@@ -55,9 +55,9 @@ Set `MR_HIDE_STATE_DIR` to an absolute path to choose the state directory. Set `
 
 Detection is best effort. Mr Hide guarantees fail-closed handling for supported values it detects; it cannot guarantee discovery of every sensitive value and does not conceal arbitrary source code or all proprietary information. Binary/image content, thinking signatures, unknown protocol structures, authentication, telemetry, update checks, plugin discovery, and non-inference egress remain outside or opaque to the declared privacy matrix.
 
-Run `mr-hide compatibility` for candidate client ranges. Untested versions block by default; `--allow-untested` is a visible one-run override and never expands advertised support.
+Run `mr-hide compatibility` for the verified client ranges. Untested versions block by default; `--allow-untested` is a visible one-run override and never expands advertised support.
 
-See [client compatibility](docs/compatibility.md), [traffic boundary](docs/traffic-boundary.md), [privacy core](docs/privacy-core.md), and [release readiness](docs/release-readiness.md) for the versioned evidence and remaining cross-platform gate.
+See [client compatibility](docs/compatibility.md), [traffic boundary](docs/traffic-boundary.md), [privacy core](docs/privacy-core.md), and [release readiness](docs/release-readiness.md) for the versioned compatibility and release evidence.
 
 ## Development
 

@@ -2,11 +2,19 @@ from __future__ import annotations
 
 import argparse
 import sys
-import tomllib
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.compatibility.evidence import (  # noqa: E402
+    EvidenceSummary,
+    load_evidence_manifest,
+    summarize_evidence,
+)
+
 MANIFEST = ROOT / "src" / "mr_hide" / "compatibility.toml"
 OUTPUTS = {
     ROOT / "docs" / "compatibility.md": "compatibility",
@@ -14,20 +22,26 @@ OUTPUTS = {
     ROOT / "docs" / "release-readiness.md": "release",
 }
 
-
-def load_manifest() -> dict[str, Any]:
-    with MANIFEST.open("rb") as source:
-        return tomllib.load(source)
-
-
-def render_compatibility(manifest: dict[str, Any]) -> str:
+def render_compatibility(
+    manifest: dict[str, Any],
+    evidence: EvidenceSummary,
+) -> str:
+    verified = evidence.complete
     lines = [
         "# Client compatibility",
         "",
         "This page is generated from `src/mr_hide/compatibility.toml`.",
-        "Candidate ranges are not release support until every required Windows/Linux cell passes.",
+        (
+            "These ranges are release-supported by the recorded Windows/Linux compatibility "
+            "matrix."
+            if verified
+            else (
+                "Candidate ranges are not release support until every required Windows/Linux "
+                "cell passes."
+            )
+        ),
         "",
-        "## Candidate ranges",
+        "## Supported ranges" if verified else "## Candidate ranges",
         "",
         "| Client | Range | Evidence status | Note |",
         "|---|---|---|---|",
@@ -55,16 +69,19 @@ def render_compatibility(manifest: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "## Recorded local evidence",
+            "## Recorded compatibility evidence",
             "",
-            "| Date | Client | Version | Platform | Flow | Result | Limitations |",
-            "|---|---|---|---|---|---|---|",
+            "| Date | Client | Version | Platform | Flow | Result | Limitations | Source |",
+            "|---|---|---|---|---|---|---|---|",
         ]
     )
     for row in manifest.get("observed_evidence", []):
+        source = row.get("source")
+        rendered_source = f"[workflow run]({source})" if source else "local"
         lines.append(
             f"| {row['date']} | {row['client']} | {row['version']} | {row['platform']} | "
-            f"{row['flow']} | {row['result']} | {row['limitations']} |"
+            f"{row['flow']} | {row['result']} | {row['limitations']} | "
+            f"{rendered_source} |"
         )
     lines.extend(
         [
@@ -118,19 +135,11 @@ def render_traffic(manifest: dict[str, Any]) -> str:
     )
 
 
-def render_release_readiness(manifest: dict[str, Any]) -> str:
-    observed = {
-        (row["client"], row["version"], row["platform"])
-        for row in manifest.get("observed_evidence", [])
-        if row["result"] == "pass"
-    }
-    required = {
-        (row["client"], version, platform)
-        for row in manifest["compatibility_matrix"]
-        for version in row["versions"]
-        for platform in row["platforms"]
-    }
-    pending = sorted(required - observed)
+def render_release_readiness(
+    manifest: dict[str, Any],
+    evidence: EvidenceSummary,
+) -> str:
+    verified = evidence.complete
     lines = [
         "# Release readiness",
         "",
@@ -141,16 +150,38 @@ def render_release_readiness(manifest: dict[str, Any]) -> str:
         "",
         "## Verdict",
         "",
-        "**Conditional local pass.** The package, privacy boundary, and recorded Windows client",
-        "contracts pass locally. MVP release support remains gated on the required Linux cells",
-        "below; this artifact is not a publication, tag, or support-range promotion.",
-        "",
-        "## Required cells not observed locally",
-        "",
-        "| Client | Version | Platform |",
-        "|---|---|---|",
     ]
-    lines.extend(f"| {client} | {version} | {platform} |" for client, version, platform in pending)
+    if verified:
+        lines.extend(
+            [
+                "**Release-ready for v0.1.0.** The package and privacy boundary pass their",
+                "deterministic gates, and every required real-client contract is recorded as",
+                "passing on Windows and Linux. This artifact prepares the release; it does not",
+                "create a tag or publish a GitHub Release.",
+                "",
+                "## Required compatibility cells",
+                "",
+                "All required Codex and Claude Code cells are recorded as passing on Windows",
+                "and Linux.",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "**Conditional local pass.** The package and privacy boundary pass locally, but",
+                "release support remains gated on the required compatibility cells below; this",
+                "artifact is not a publication, tag, or support-range promotion.",
+                "",
+                "## Required compatibility cells not yet recorded",
+                "",
+                "| Client | Version | Platform |",
+                "|---|---|---|",
+                *(
+                    f"| {client} | {version} | {platform} |"
+                    for client, version, platform in sorted(evidence.pending)
+                ),
+            ]
+        )
     lines.extend(
         [
             "",
@@ -182,30 +213,38 @@ def render_release_readiness(manifest: dict[str, Any]) -> str:
                 "structures fail"
             ),
             "  closed rather than receiving recursive best-guess transformation.",
-            "- Candidate client ranges do not become release support until every required workflow",
-            "  cell passes on its declared operating system.",
+            (
+                "- Release support is limited to the recorded client ranges and platforms; "
+                "versions"
+            ),
+            "  outside those ranges remain blocked unless explicitly overridden for one run.",
             "",
         ]
     )
     return "\n".join(lines)
 
 
-def render(kind: str, manifest: dict[str, Any]) -> str:
+def render(
+    kind: str,
+    manifest: dict[str, Any],
+    evidence: EvidenceSummary,
+) -> str:
     if kind == "compatibility":
-        return render_compatibility(manifest)
+        return render_compatibility(manifest, evidence)
     if kind == "traffic":
         return render_traffic(manifest)
-    return render_release_readiness(manifest)
+    return render_release_readiness(manifest, evidence)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     options = parser.parse_args()
-    manifest = load_manifest()
+    manifest = load_evidence_manifest(MANIFEST)
+    evidence = summarize_evidence(manifest, repository_root=ROOT)
     stale: list[Path] = []
     for path, kind in OUTPUTS.items():
-        expected = render(kind, manifest)
+        expected = render(kind, manifest, evidence)
         if options.check:
             if not path.exists() or path.read_text(encoding="utf-8") != expected:
                 stale.append(path)

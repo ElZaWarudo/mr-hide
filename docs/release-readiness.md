@@ -4,18 +4,15 @@ This page is generated from `src/mr_hide/compatibility.toml` and versioned relea
 
 ## Verdict
 
-**Conditional local pass.** The package, privacy boundary, and recorded Windows client
-contracts pass locally. MVP release support remains gated on the required Linux cells
-below; this artifact is not a publication, tag, or support-range promotion.
+**Release-ready for v0.1.0.** The package and privacy boundary pass their
+deterministic gates, and every required real-client contract is recorded as
+passing on Windows and Linux. This artifact prepares the release; it does not
+create a tag or publish a GitHub Release.
 
-## Required cells not observed locally
+## Required compatibility cells
 
-| Client | Version | Platform |
-|---|---|---|
-| claude | 2.1.216 | linux |
-| claude | 2.1.217 | linux |
-| codex | 0.144.4 | linux |
-| codex | 0.145.0 | linux |
+All required Codex and Claude Code cells are recorded as passing on Windows
+and Linux.
 
 ## Deterministic local gate
 
@@ -36,5 +33,5 @@ wheel installation. It does not publish or mutate a remote.
   declared inference boundary.
 - Unknown and binary protocol data remains opaque; unsupported eligible structures fail
   closed rather than receiving recursive best-guess transformation.
-- Candidate client ranges do not become release support until every required workflow
-  cell passes on its declared operating system.
+- Release support is limited to the recorded client ranges and platforms; versions
+  outside those ranges remain blocked unless explicitly overridden for one run.

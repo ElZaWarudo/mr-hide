@@ -21,13 +21,13 @@ def fake_probe(version: str) -> tuple[str, tuple[str, ...]]:
     return sys.executable, (str(FAKE_CLIENT), "--version", version)
 
 
-def test_manifest_contains_candidate_ranges_and_evidence_state() -> None:
+def test_manifest_contains_verified_release_ranges() -> None:
     manifest = load_manifest()
 
     assert set(manifest.clients) == {"codex", "claude"}
     assert str(manifest.clients["codex"].supported) == ">=0.144.4,<0.146.0"
     assert str(manifest.clients["claude"].supported) == ">=2.1.216,<=2.1.217"
-    assert all(client.evidence_status == "candidate" for client in manifest.clients.values())
+    assert all(client.evidence_status == "verified" for client in manifest.clients.values())
 
 
 @pytest.mark.parametrize("client,version", [("codex", "0.145.0"), ("claude", "2.1.217")])

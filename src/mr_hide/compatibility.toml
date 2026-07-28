@@ -1,12 +1,27 @@
 schema_version = 1
 
+[evidence_run]
+workflow = "Real client compatibility"
+run_id = "30343602093"
+head_sha = "7aeaa486b50d4aafd08ec2c9300026cf824c5563"
+sensitive_tree_sha256 = "16aa9783ba27821e4250a6ebda9400001e68aebef851407251dde4511a5f07b2"
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
+
 [clients.codex]
 display_name = "Codex"
 executable = "codex"
 version_args = ["--version"]
 supported = ">=0.144.4,<0.146.0"
-evidence_status = "candidate"
-evidence_note = "Candidate range; real-client Windows/Linux evidence is required before release support is advertised."
+evidence_status = "verified"
+evidence_note = "Windows/Linux launch and resume contracts passed in GitHub Actions run 30343602093."
+
+[clients.claude]
+display_name = "Claude Code"
+executable = "claude"
+version_args = ["--version"]
+supported = ">=2.1.216,<=2.1.217"
+evidence_status = "verified"
+evidence_note = "Windows/Linux launch and resume contracts passed in GitHub Actions run 30343602093."
 
 [[compatibility_matrix]]
 client = "codex"
@@ -27,44 +42,81 @@ status = "required"
 limitation = "Authentication, telemetry, updates, and provider-bound tool egress are outside the mediated boundary."
 
 [[observed_evidence]]
-date = "2026-07-22"
+date = "2026-07-28"
 client = "codex"
 version = "0.144.4"
 platform = "windows"
 flow = "protected Responses launch and native resume"
 result = "pass"
-limitations = "Protected JSON/SSE and hashed resume binding passed locally; the complete Windows/Linux boundary matrix remains required."
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
 
 [[observed_evidence]]
-date = "2026-07-22"
+date = "2026-07-28"
+client = "codex"
+version = "0.144.4"
+platform = "linux"
+flow = "protected Responses launch and native resume"
+result = "pass"
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
+
+[[observed_evidence]]
+date = "2026-07-28"
+client = "codex"
+version = "0.145.0"
+platform = "windows"
+flow = "protected Responses launch and native resume"
+result = "pass"
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
+
+[[observed_evidence]]
+date = "2026-07-28"
+client = "codex"
+version = "0.145.0"
+platform = "linux"
+flow = "protected Responses launch and native resume"
+result = "pass"
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
+
+[[observed_evidence]]
+date = "2026-07-28"
 client = "claude"
 version = "2.1.216"
 platform = "windows"
 flow = "protected Messages launch and native resume"
 result = "pass"
-limitations = "Protected JSON/SSE, launcher-owned session binding, and native resume passed locally; the complete Windows/Linux boundary matrix remains required."
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
 
 [[observed_evidence]]
-date = "2026-07-22"
-client = "codex"
-version = "0.145.0"
-platform = "windows"
-flow = "non-interactive Responses round trip"
+date = "2026-07-28"
+client = "claude"
+version = "2.1.216"
+platform = "linux"
+flow = "protected Messages launch and native resume"
 result = "pass"
-limitations = "Local candidate evidence only; the complete Windows/Linux boundary matrix remains required."
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
 
 [[observed_evidence]]
-date = "2026-07-22"
+date = "2026-07-28"
 client = "claude"
 version = "2.1.217"
 platform = "windows"
 flow = "protected Messages launch and native resume"
 result = "pass"
-limitations = "Protected JSON/SSE, launcher-owned session binding, and native resume passed locally; the complete Windows/Linux boundary matrix remains required."
-[clients.claude]
-display_name = "Claude Code"
-executable = "claude"
-version_args = ["--version"]
-supported = ">=2.1.216,<=2.1.217"
-evidence_status = "candidate"
-evidence_note = "Candidate range; real-client Windows/Linux evidence is required before release support is advertised."
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"
+
+[[observed_evidence]]
+date = "2026-07-28"
+client = "claude"
+version = "2.1.217"
+platform = "linux"
+flow = "protected Messages launch and native resume"
+result = "pass"
+limitations = "Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised."
+source = "https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093"

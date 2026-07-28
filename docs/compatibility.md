@@ -1,14 +1,14 @@
 # Client compatibility
 
 This page is generated from `src/mr_hide/compatibility.toml`.
-Candidate ranges are not release support until every required Windows/Linux cell passes.
+These ranges are release-supported by the recorded Windows/Linux compatibility matrix.
 
-## Candidate ranges
+## Supported ranges
 
 | Client | Range | Evidence status | Note |
 |---|---|---|---|
-| Codex | `>=0.144.4,<0.146.0` | candidate | Candidate range; real-client Windows/Linux evidence is required before release support is advertised. |
-| Claude Code | `>=2.1.216,<=2.1.217` | candidate | Candidate range; real-client Windows/Linux evidence is required before release support is advertised. |
+| Codex | `>=0.144.4,<0.146.0` | verified | Windows/Linux launch and resume contracts passed in GitHub Actions run 30343602093. |
+| Claude Code | `>=2.1.216,<=2.1.217` | verified | Windows/Linux launch and resume contracts passed in GitHub Actions run 30343602093. |
 
 ## Required matrix
 
@@ -17,14 +17,18 @@ Candidate ranges are not release support until every required Windows/Linux cell
 | codex | 0.144.4, 0.145.0 | windows, linux | protected Responses launch and native resume | `/v1/responses` | required |
 | claude | 2.1.216, 2.1.217 | windows, linux | protected Messages launch and native resume | `/v1/messages`, `/v1/messages/count_tokens` | required |
 
-## Recorded local evidence
+## Recorded compatibility evidence
 
-| Date | Client | Version | Platform | Flow | Result | Limitations |
-|---|---|---|---|---|---|---|
-| 2026-07-22 | codex | 0.144.4 | windows | protected Responses launch and native resume | pass | Protected JSON/SSE and hashed resume binding passed locally; the complete Windows/Linux boundary matrix remains required. |
-| 2026-07-22 | claude | 2.1.216 | windows | protected Messages launch and native resume | pass | Protected JSON/SSE, launcher-owned session binding, and native resume passed locally; the complete Windows/Linux boundary matrix remains required. |
-| 2026-07-22 | codex | 0.145.0 | windows | non-interactive Responses round trip | pass | Local candidate evidence only; the complete Windows/Linux boundary matrix remains required. |
-| 2026-07-22 | claude | 2.1.217 | windows | protected Messages launch and native resume | pass | Protected JSON/SSE, launcher-owned session binding, and native resume passed locally; the complete Windows/Linux boundary matrix remains required. |
+| Date | Client | Version | Platform | Flow | Result | Limitations | Source |
+|---|---|---|---|---|---|---|---|
+| 2026-07-28 | codex | 0.144.4 | windows | protected Responses launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
+| 2026-07-28 | codex | 0.144.4 | linux | protected Responses launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
+| 2026-07-28 | codex | 0.145.0 | windows | protected Responses launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
+| 2026-07-28 | codex | 0.145.0 | linux | protected Responses launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
+| 2026-07-28 | claude | 2.1.216 | windows | protected Messages launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
+| 2026-07-28 | claude | 2.1.216 | linux | protected Messages launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
+| 2026-07-28 | claude | 2.1.217 | windows | protected Messages launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
+| 2026-07-28 | claude | 2.1.217 | linux | protected Messages launch and native resume | pass | Protocol-shaped local upstream and dummy credentials; live provider authentication and non-inference traffic were not exercised. | [workflow run](https://github.com/ElZaWarudo/mr-hide/actions/runs/30343602093) |
 
 Compatibility runs use protocol-shaped local responses and dummy credentials.
 Overrides

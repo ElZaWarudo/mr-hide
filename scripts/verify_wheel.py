@@ -12,6 +12,7 @@ import zipfile
 from pathlib import Path
 
 INSTALL_TIMEOUT_SECONDS = 600
+SMOKE_TIMEOUT_SECONDS = 60
 
 
 def verify_wheel(distribution_directory: Path) -> None:
@@ -46,6 +47,8 @@ def verify_wheel(distribution_directory: Path) -> None:
             "-c",
             (
                 "from importlib.resources import files; "
+                "from importlib.metadata import version; "
+                "from mr_hide import __version__; "
                 "from mr_hide.policy import decide_policy; "
                 "from mr_hide.privacy import MappingTable; "
                 "import mr_hide.protocols.messages as messages_protocol; "
@@ -59,6 +62,7 @@ def verify_wheel(distribution_directory: Path) -> None:
                 "assert messages_protocol.MessagesRuntime and PrivacyRuntime; "
                 "assert BindingRegistry and ConversationService; "
                 "assert VaultCodec and VaultRepository; "
+                "assert version('mr-hide') == __version__; "
                 "assert files('mr_hide').joinpath('py.typed').is_file()"
             ),
         )
@@ -109,7 +113,7 @@ def _output(command: Path, *args: str) -> str:
         text=True,
         encoding="utf-8",
         errors="replace",
-        timeout=30,
+        timeout=SMOKE_TIMEOUT_SECONDS,
     )
     return completed.stdout
 
