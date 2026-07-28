@@ -20,6 +20,7 @@ from packaging.version import InvalidVersion, Version
 from mr_hide.diagnostics import safe_probe_environment
 
 _VERSION_PATTERN = re.compile(r"(?<![\w.])(\d+(?:\.\d+){1,3}(?:[-+._]?[A-Za-z0-9]+)*)")
+_VERSION_PROBE_TIMEOUT_SECONDS = 30.0
 
 
 class CompatibilityError(RuntimeError):
@@ -114,7 +115,7 @@ def check_client_version(
     executable: str | None = None,
     version_args: Sequence[str] | None = None,
     allow_untested: bool = False,
-    timeout: float = 10.0,
+    timeout: float = _VERSION_PROBE_TIMEOUT_SECONDS,
 ) -> VersionCheck:
     """Probe one client and enforce the packaged one-run version policy."""
 
