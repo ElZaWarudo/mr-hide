@@ -17,8 +17,8 @@ review_threshold: P0-P2
 
 ## Current Phase
 
-- Phase: roadmap implementation and final local audit complete
-- Result: RDM-001 through RDM-005 are locally integrated into `develop`. The final ref, worktree, readiness, and temporary-state audit passed without claiming unobserved Linux success.
+- Phase: roadmap implementation complete; `v0.1.0` release preparation active
+- Result: RDM-001 through RDM-005 are integrated into `develop`. Required Codex and Claude Code launch/resume contracts passed on Windows and Linux in GitHub Actions; release evidence can now be promoted without claiming live-provider coverage.
 - Primary artifact: `docs/plans/2026-07-22-005-chore-cross-platform-mvp-hardening-plan.md`
 - Artifact classification: `implementation-ready unified code plan`
 
@@ -184,9 +184,11 @@ review_threshold: P0-P2
 - RDM-005 review result: the pass added bounded vault enumeration and explicit workflow YAML validation after adversarial inspection. Stale binding pruning was deliberately not added because cross-file snapshots could delete a newly created binding; retaining a hashed stale record is safer. No P0-P2 correctness, reliability, performance, data-integrity, package-contract, race, or security finding remains.
 - RDM-005 local release result: four reviewed implementation commits (`465d048`, `60ef968`, `a76651a`, `bf045d4`) were rebased onto `develop` and merged locally with `--no-ff` as `852d6b2`. No remote mutation occurred.
 - RDM-005 closeout result: delivery state was merged locally as `daad134`. The post-merge fast readiness gate passed, the temporary Claude client and default local state paths were absent, and both RDM-005 branches were confirmed as ancestors of `develop`.
+- Post-closeout CI result: workflow run `30343602027` passed the complete Windows/Linux quality matrix at `7aeaa48`; workflow run `30343602093` passed all eight exact real-client cells for Codex `0.144.4`/`0.145.0` and Claude Code `2.1.216`/`2.1.217`.
+- Release-preparation posture: package version `0.1.0` is already aligned in `pyproject.toml` and `mr_hide.__version__`. Compatibility evidence is promoted only from the recorded successful workflow; authentication, live providers, telemetry, updates, plugins, and non-inference traffic remain outside the claim.
 
 ## Exact Next Invocation
 
 ```text
-Run the four required Linux real-client compatibility cells, reconcile any platform differences, and regenerate conditional release evidence before considering a release candidate.
+Review the prepared v0.1.0 notes, then create and push the v0.1.0 tag and publish the GitHub Release only after explicit approval.
 ```
