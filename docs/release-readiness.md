@@ -4,15 +4,15 @@ This page is generated from `src/mr_hide/compatibility.toml` and versioned relea
 
 ## Verdict
 
-**Release-ready for v0.1.0.** The package and privacy boundary pass their
-deterministic gates, and every required real-client contract is recorded as
-passing on Windows and Linux. This artifact prepares the release; it does not
-create a tag or publish a GitHub Release.
+**Conditional local pass.** The package and privacy boundary pass locally, but
+release support remains gated on current compatibility evidence; this
+artifact is not a publication, tag, or support-range promotion.
 
-## Required compatibility cells
+## Compatibility evidence needed
 
-All required Codex and Claude Code cells are recorded as passing on Windows
-and Linux.
+The recorded client run predates changes to compatibility-sensitive source.
+Run the required client matrix against this revision before release.
+
 
 ## Deterministic local gate
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from typing import cast
 
 import httpx
@@ -10,7 +10,7 @@ from starlette.background import BackgroundTask
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response, StreamingResponse
 
-from mr_hide.policy import Direction
+from mr_hide.policy import ContentKind, Direction
 from mr_hide.protocols.messages import (
     MessagesRuntime,
     MessagesRuntimeError,
@@ -34,6 +34,7 @@ from mr_hide.protocols.responses import (
     transform_sse_bytes,
 )
 from mr_hide.proxy.headers import filter_request_headers, filter_response_headers
+from mr_hide.runtime.privacy import PrivacyRuntime, PrivacyRuntimeError
 
 _MAX_TRANSFORMED_RESPONSE_BYTES = 32 * 1024 * 1024
 
@@ -131,10 +132,13 @@ async def _forward_protected_responses(
     try:
         target = build_upstream_url(upstream, raw_path, query)
         original = await _bounded_request_body(request)
-        transaction = runtime.transaction(Direction.TO_PROVIDER)
-        protected = transform_request_json(original, transaction.transform)
-        runtime.bind_request_identity(original)
-        transaction.commit()
+        protected = await _transform_committed(
+            runtime,
+            Direction.TO_PROVIDER,
+            original,
+            transform_request_json,
+            bind_identity=lambda: runtime.bind_request_identity(original),
+        )
     except ProxyTargetError:
         return PlainTextResponse("Invalid request target.", status_code=400)
     except (ResponsesTransformError, ResponsesRuntimeError) as error:
@@ -159,14 +163,18 @@ async def _forward_protected_responses(
         return PlainTextResponse("Upstream is unavailable.", status_code=502)
 
     try:
-        payload = await _bounded_response_body(upstream_response)
-        incoming = runtime.transaction(Direction.TO_LOCAL)
         media_type = upstream_response.headers.get("content-type", "").split(";", 1)[0]
-        if media_type.strip().lower() == "text/event-stream":
-            restored = transform_sse_bytes(payload, incoming.transform)
+        media_type = media_type.strip().lower()
+        if upstream_response.status_code in {204, 205, 304}:
+            return _safe_empty_response(upstream_response)
+        if upstream_response.status_code >= 400 and not _is_structured_media_type(media_type):
+            return _safe_unstructured_error(upstream_response)
+        payload = await _bounded_response_body(upstream_response)
+        if media_type == "text/event-stream":
+            transformer = transform_sse_bytes
         else:
-            restored = transform_response_json(payload, incoming.transform)
-        incoming.commit()
+            transformer = transform_response_json
+        restored = await _transform_committed(runtime, Direction.TO_LOCAL, payload, transformer)
     except (ResponsesTransformError, ResponsesRuntimeError, httpx.RequestError):
         return PlainTextResponse("Protected upstream response rejected.", status_code=502)
     finally:
@@ -192,9 +200,9 @@ async def _forward_protected_messages(
         original = await _bounded_request_body(
             request, reason="messages-json-size-invalid"
         )
-        outgoing = runtime.transaction(Direction.TO_PROVIDER)
-        protected = transform_messages_request(original, outgoing.transform)
-        outgoing.commit()
+        protected = await _transform_committed(
+            runtime, Direction.TO_PROVIDER, original, transform_messages_request
+        )
     except ProxyTargetError:
         return PlainTextResponse("Invalid request target.", status_code=400)
     except (MessagesTransformError, MessagesRuntimeError) as error:
@@ -214,17 +222,22 @@ async def _forward_protected_messages(
         return PlainTextResponse("Upstream is unavailable.", status_code=502)
 
     try:
+        media_type = upstream_response.headers.get("content-type", "").split(";", 1)[0]
+        media_type = media_type.strip().lower()
+        if upstream_response.status_code in {204, 205, 304}:
+            return _safe_empty_response(upstream_response)
+        if upstream_response.status_code >= 400 and not _is_structured_media_type(media_type):
+            return _safe_unstructured_error(upstream_response)
         payload = await _bounded_response_body(
             upstream_response, reason="messages-response-too-large"
         )
-        incoming = runtime.transaction(Direction.TO_LOCAL)
-        media_type = upstream_response.headers.get("content-type", "").split(";", 1)[0]
-        if media_type.strip().lower() == "text/event-stream":
-            restored = transform_messages_sse(payload, incoming.transform)
+        if media_type == "text/event-stream":
+            transformer = transform_messages_sse
         else:
-            restored = transform_messages_response(payload, incoming.transform)
-        if not count_only:
-            incoming.commit()
+            transformer = transform_messages_response
+        restored = await _transform_committed(
+            runtime, Direction.TO_LOCAL, payload, transformer, commit=not count_only
+        )
     except (MessagesTransformError, MessagesRuntimeError, httpx.RequestError):
         return PlainTextResponse("Protected upstream response rejected.", status_code=502)
     finally:
@@ -282,3 +295,60 @@ def _rewritten_response_headers(
     filtered = filter_response_headers(headers)
     excluded = {b"content-length", b"content-encoding"}
     return tuple((name, value) for name, value in filtered if name.lower() not in excluded)
+
+
+def _is_structured_media_type(media_type: str) -> bool:
+    return (
+        media_type in {"text/event-stream", "application/json"}
+        or media_type.endswith("+json")
+    )
+
+
+def _safe_unstructured_error(upstream_response: httpx.Response) -> Response:
+    response = PlainTextResponse(
+        "Upstream returned an error.", status_code=upstream_response.status_code
+    )
+    excluded = {b"content-type", b"content-length", b"content-encoding"}
+    response.raw_headers.extend(
+        (name, value)
+        for name, value in filter_response_headers(upstream_response.headers.raw)
+        if name.lower() not in excluded
+    )
+    return response
+
+
+def _safe_empty_response(upstream_response: httpx.Response) -> Response:
+    response = Response(status_code=upstream_response.status_code)
+    excluded = {b"content-type", b"content-length", b"content-encoding"}
+    response.raw_headers = [
+        (name, value)
+        for name, value in filter_response_headers(upstream_response.headers.raw)
+        if name.lower() not in excluded
+    ]
+    return response
+
+
+async def _transform_committed(
+    runtime: PrivacyRuntime,
+    direction: Direction,
+    payload: bytes,
+    transform: Callable[[bytes, Callable[[str, ContentKind], str]], bytes],
+    *,
+    bind_identity: Callable[[], None] | None = None,
+    commit: bool = True,
+) -> bytes:
+    async with runtime.request_lock:
+        for attempt in range(8):
+            transaction = runtime.transaction(direction)
+            transformed = transform(payload, transaction.transform)
+            if bind_identity is not None:
+                bind_identity()
+            if not commit:
+                return transformed
+            try:
+                transaction.commit()
+                return transformed
+            except PrivacyRuntimeError as error:
+                if error.reason != "stale-vault-write" or attempt == 7:
+                    raise
+    raise PrivacyRuntimeError("stale-vault-write")

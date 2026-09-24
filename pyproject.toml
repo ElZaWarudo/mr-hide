@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
   "click>=8.1,<9",
-  "cryptography>=49,<50",
+  "cryptography>=50.0.1,<51",
   "httpx>=0.28,<1",
   "keyring>=25.6,<26",
   "packaging>=24.2,<27",

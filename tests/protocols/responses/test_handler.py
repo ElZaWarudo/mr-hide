@@ -94,6 +94,62 @@ async def test_json_round_trip_binds_identity_and_commits_once_per_body(tmp_path
 
 
 @pytest.mark.asyncio
+async def test_plain_upstream_rate_limit_keeps_status_without_exposing_body(tmp_path: Path) -> None:
+    prepared, _repository, _registry = runtime(tmp_path)
+    transport = RecordingTransport(
+        lambda request: httpx.Response(
+            429,
+            headers={"content-type": "text/plain", "retry-after": "3"},
+            content=b"upstream private diagnostic",
+            request=request,
+        )
+    )
+    app = create_proxy_app(
+        "https://upstream.test",
+        client_factory=client_factory(transport),
+        responses_runtime=prepared,
+    )
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://local"
+        ) as client,
+    ):
+        response = await client.post(
+            "/v1/responses", json={"prompt_cache_key": NATIVE_ID, "input": "Alice"}
+        )
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "3"
+    assert b"private diagnostic" not in response.content
+
+
+@pytest.mark.asyncio
+async def test_empty_upstream_success_keeps_no_content_status(tmp_path: Path) -> None:
+    prepared, _repository, _registry = runtime(tmp_path)
+    transport = RecordingTransport(
+        lambda request: httpx.Response(204, request=request)
+    )
+    app = create_proxy_app(
+        "https://upstream.test",
+        client_factory=client_factory(transport),
+        responses_runtime=prepared,
+    )
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://local"
+        ) as client,
+    ):
+        response = await client.post(
+            "/v1/responses", json={"prompt_cache_key": NATIVE_ID, "input": "Alice"}
+        )
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+
+@pytest.mark.asyncio
 async def test_default_tool_data_passes_through_while_conversation_is_protected(
     tmp_path: Path,
 ) -> None:

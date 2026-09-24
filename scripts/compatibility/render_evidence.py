@@ -36,8 +36,8 @@ def render_compatibility(
             "matrix."
             if verified
             else (
-                "Candidate ranges are not release support until every required Windows/Linux "
-                "cell passes."
+                "Candidate ranges are not release support until the current source passes "
+                "every required Windows/Linux cell."
             )
         ),
         "",
@@ -106,7 +106,8 @@ def render_traffic(manifest: dict[str, Any]) -> str:
             "",
             *(f"- `{route}`" for route in mediated),
             "",
-            "The listener binds only to loopback. Requests preserve bodies, raw query bytes,",
+            "The listener binds only to loopback. Protected routes rewrite eligible JSON fields;",
+            "raw forwarding preserves bodies. Requests preserve raw query bytes,",
             "status,",
             "stream order, and end-to-end headers after hop-by-hop filtering. OpenAI",
             "Responses and Anthropic Messages request/response JSON and SSE use explicit",
@@ -169,19 +170,32 @@ def render_release_readiness(
         lines.extend(
             [
                 "**Conditional local pass.** The package and privacy boundary pass locally, but",
-                "release support remains gated on the required compatibility cells below; this",
+                "release support remains gated on current compatibility evidence; this",
                 "artifact is not a publication, tag, or support-range promotion.",
                 "",
-                "## Required compatibility cells not yet recorded",
+                "## Compatibility evidence needed",
                 "",
-                "| Client | Version | Platform |",
-                "|---|---|---|",
-                *(
-                    f"| {client} | {version} | {platform} |"
-                    for client, version, platform in sorted(evidence.pending)
-                ),
             ]
         )
+        if evidence.provenance_valid and not evidence.tested_revision_current:
+            lines.extend(
+                [
+                    "The recorded client run predates changes to compatibility-sensitive source.",
+                    "Run the required client matrix against this revision before release.",
+                    "",
+                ]
+            )
+        if evidence.pending:
+            lines.extend(
+                [
+                    "| Client | Version | Platform |",
+                    "|---|---|---|",
+                    *(
+                        f"| {client} | {version} | {platform} |"
+                        for client, version, platform in sorted(evidence.pending)
+                    ),
+                ]
+            )
     lines.extend(
         [
             "",

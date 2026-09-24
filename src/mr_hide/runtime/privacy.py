@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import threading
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -52,6 +53,7 @@ class PrivacyRuntime:
         self.bypassed = bypassed
         self._clock = clock
         self._identity_lock = threading.Lock()
+        self.request_lock = asyncio.Lock()
 
     @classmethod
     def _prepare(
@@ -74,7 +76,7 @@ class PrivacyRuntime:
             policy, Direction.TO_PROVIDER, ContentKind.CONVERSATION
         ).substitution_mode
         if resume_identity is None:
-            _cleanup_expired(service)
+            _cleanup_expired(service, registry, repository)
             conversation_id = identifier_factory()
             result = service.create(
                 ConversationState.new(conversation_id, mode=expected_mode, now=clock())
@@ -99,7 +101,7 @@ class PrivacyRuntime:
         if result.status not in {ConversationStatus.PROTECTED, ConversationStatus.BYPASSED}:
             raise PrivacyRuntimeError(result.reason or "conversation-unavailable")
         if resume_identity is not None:
-            _cleanup_expired(service)
+            _cleanup_expired(service, registry, repository)
         if bypass and result.status is not ConversationStatus.BYPASSED:
             result = service.accept_bypass(
                 conversation_id, warning_accepted=bypass_warning_accepted
@@ -151,9 +153,14 @@ class PrivacyRuntime:
         )
 
 
-def _cleanup_expired(service: ConversationService) -> None:
+def _cleanup_expired(
+    service: ConversationService,
+    registry: BindingRegistry,
+    repository: VaultRepository,
+) -> None:
     try:
         service.cleanup_expired()
+        registry.prune_missing(repository.conversation_ids)
     except VaultError as error:
         raise PrivacyRuntimeError(error.reason) from None
 

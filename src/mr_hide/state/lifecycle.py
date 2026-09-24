@@ -177,11 +177,15 @@ class ConversationService:
         cutoff = self._now() - RETENTION_PERIOD
         deleted = 0
         for conversation_id in self._repository.conversation_ids():
-            if self._repository.delete_if_inactive(
-                conversation_id,
-                inactive_since=cutoff,
-            ):
-                deleted += 1
+            try:
+                if self._repository.delete_if_inactive(
+                    conversation_id,
+                    inactive_since=cutoff,
+                ):
+                    deleted += 1
+            except VaultError:
+                # A damaged, unrelated vault must not block healthy conversations.
+                continue
         return deleted
 
     def _commit_text(

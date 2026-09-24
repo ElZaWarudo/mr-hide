@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 import scripts.check_release_readiness as readiness
-from scripts.compatibility.evidence import summarize_evidence
+from scripts.compatibility.evidence import load_evidence_manifest, summarize_evidence
 from scripts.compatibility.render_evidence import (
     render_compatibility,
     render_release_readiness,
@@ -101,8 +101,15 @@ def test_readiness_modes_are_local_and_non_publishing(
     assert not ({"push", "publish", "upload", "workflow", "release"} & set(commands.split()))
 
 
-def test_recorded_compatibility_evidence_is_release_complete() -> None:
-    assert readiness._compatibility_evidence_complete() is True
+def test_recorded_compatibility_matrix_is_complete_but_requires_current_source() -> None:
+    manifest = load_evidence_manifest(readiness.COMPATIBILITY_MANIFEST)
+    summary = summarize_evidence(manifest, repository_root=readiness.ROOT)
+
+    assert summary.required <= summary.observed_passes
+    assert summary.clients_verified
+    assert summary.matrix_matches_verified_clients
+    assert summary.provenance_valid
+    assert summary.complete is summary.tested_revision_current
 
 
 @pytest.mark.parametrize(

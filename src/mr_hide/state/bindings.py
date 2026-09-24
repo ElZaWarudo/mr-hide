@@ -6,7 +6,7 @@ import hashlib
 import json
 import os
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager, suppress
 from pathlib import Path
 from uuid import UUID
@@ -32,7 +32,7 @@ class BindingRegistry:
     def lookup(self, client: str, native_identity: str) -> UUID | None:
         key = _binding_key(client, native_identity)
         with self._lock():
-            records = self._read_unlocked()
+            records = self._read_unlocked(allow_overflow=True)
             value = records.get(key)
         return None if value is None else parse_conversation_id(value)
 
@@ -48,7 +48,16 @@ class BindingRegistry:
                 records[key] = str(parsed)
                 self._write_unlocked(records)
 
-    def _read_unlocked(self) -> dict[str, str]:
+    def prune_missing(self, active_conversations: Callable[[], tuple[UUID, ...]]) -> int:
+        with self._lock():
+            active = {str(identifier) for identifier in active_conversations()}
+            records = self._read_unlocked(allow_overflow=True)
+            retained = {key: value for key, value in records.items() if value in active}
+            if len(retained) != len(records):
+                self._write_unlocked(retained)
+            return len(records) - len(retained)
+
+    def _read_unlocked(self, *, allow_overflow: bool = False) -> dict[str, str]:
         try:
             if not self._path.exists():
                 return {}
@@ -72,7 +81,7 @@ class BindingRegistry:
         ):
             raise VaultError("binding-registry-invalid")
         records = document["records"]
-        if len(records) > 10_000:
+        if len(records) > 10_000 and not allow_overflow:
             raise VaultError("binding-registry-invalid")
         for key, value in records.items():
             if (

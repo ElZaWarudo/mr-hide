@@ -10,6 +10,8 @@ from typing import Any
 import pytest
 import yaml
 
+from scripts.compatibility.evidence import load_evidence_manifest, summarize_evidence
+
 ROOT = Path(__file__).parents[2]
 CompatibilityCell = tuple[str, str, str]
 
@@ -143,6 +145,14 @@ def test_generated_evidence_is_current_and_redacted() -> None:
     assert "COMPATIBILITY_KEY_SENTINEL" not in rendered
     assert "Return exactly CONTRACT_OK" not in rendered
     assert "Supported Codex" in rendered
-    assert "Release-ready for v0.1.0" in rendered
+    evidence = summarize_evidence(
+        load_evidence_manifest(ROOT / "src" / "mr_hide" / "compatibility.toml"),
+        repository_root=ROOT,
+    )
+    if evidence.complete:
+        assert "Release-ready for v0.1.0" in rendered
+    else:
+        assert "Conditional local pass" in rendered
+        assert "Release-ready for v0.1.0" not in rendered
     assert "30343602093" in rendered
     assert "| claude | 2.1.217 | linux |" in rendered

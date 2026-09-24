@@ -13,6 +13,7 @@ from mr_hide.privacy.models import DetectedSpan
 from mr_hide.protocols.messages import MessagesRuntime, MessagesRuntimeError
 from mr_hide.proxy import create_proxy_app
 from mr_hide.state import AtomicVaultStore, BindingRegistry, VaultRepository
+from mr_hide.state.models import ConversationState
 from tests.fixtures.upstream_app import RecordingTransport, TrackedByteStream, client_factory
 from tests.state.helpers import StaticKeyProvider
 
@@ -121,6 +122,84 @@ async def test_count_request_protects_text_without_response_state_mutation(
     assert response.json() == {"input_tokens": 7}
     assert b"Alice" not in b"".join(transport.requests[0].chunks)
     assert repository.load(CONVERSATION_ID).revision == 1
+
+
+@pytest.mark.asyncio
+async def test_plain_upstream_rate_limit_keeps_status_without_exposing_body(tmp_path: Path) -> None:
+    prepared, _repository, _registry = runtime(tmp_path)
+    transport = RecordingTransport(
+        lambda request: httpx.Response(
+            429,
+            headers={"content-type": "text/plain", "retry-after": "3"},
+            content=b"upstream private diagnostic",
+            request=request,
+        )
+    )
+    app = create_proxy_app(
+        "https://upstream.test",
+        client_factory=client_factory(transport),
+        messages_runtime=prepared,
+    )
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://local"
+        ) as client,
+    ):
+        response = await client.post(
+            "/v1/messages", json={"messages": [{"role": "user", "content": "Alice"}]}
+        )
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "3"
+    assert b"private diagnostic" not in response.content
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("race_on_save", (1, 2))
+async def test_stale_revision_retries_complete_transform(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, race_on_save: int
+) -> None:
+    prepared, repository, _registry = runtime(tmp_path)
+    original_save = repository.save
+    saves = 0
+
+    def racing_save(state: ConversationState, *, expected_revision: int) -> None:
+        nonlocal saves
+        saves += 1
+        if saves == race_on_save:
+            current = repository.load(CONVERSATION_ID)
+            original_save(current.next_revision(), expected_revision=current.revision)
+        original_save(state, expected_revision=expected_revision)
+
+    monkeypatch.setattr(repository, "save", racing_save)
+    transport = RecordingTransport(
+        lambda request: httpx.Response(
+            200,
+            headers={"content-type": "application/json"},
+            content=b'{"content":[{"type":"text","text":"Hello <P0>"}]}',
+            request=request,
+        )
+    )
+    app = create_proxy_app(
+        "https://upstream.test",
+        client_factory=client_factory(transport),
+        messages_runtime=prepared,
+    )
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://local"
+        ) as client,
+    ):
+        response = await client.post(
+            "/v1/messages", json={"messages": [{"role": "user", "content": "Alice"}]}
+        )
+
+    assert response.status_code == 200
+    assert response.json()["content"][0]["text"] == "Hello Alice"
+    assert b"Alice" not in b"".join(transport.requests[0].chunks)
+    assert repository.load(CONVERSATION_ID).revision == 3
 
 
 @pytest.mark.asyncio

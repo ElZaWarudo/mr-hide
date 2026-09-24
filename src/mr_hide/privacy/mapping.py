@@ -242,7 +242,24 @@ def transform_text(
     working = mappings or MappingTable()
     if any(item.substitute in text for item in working.records):
         raise PrivacyProcessingError("ambiguous-existing-substitute")
-    spans = resolve_overlaps(text, detections)
+    known_spans = list(_known_original_spans(text, working))
+    validated_detections = resolve_overlaps(text, detections)
+    new_spans: list[DetectedSpan] = []
+    for span in validated_detections:
+        overlapping = [
+            known
+            for known in known_spans
+            if span.start < known.end and known.start < span.end
+        ]
+        if not overlapping:
+            new_spans.append(span)
+        elif all(span.start <= known.start and known.end <= span.end for known in overlapping):
+            if any(span.start < known.start or known.end < span.end for known in overlapping):
+                known_spans = [known for known in known_spans if known not in overlapping]
+                new_spans.append(span)
+        elif not all(known.start <= span.start and span.end <= known.end for known in overlapping):
+            raise PrivacyProcessingError("ambiguous-known-overlap")
+    spans = resolve_overlaps(text, (*known_spans, *new_spans))
     replacements: list[tuple[DetectedSpan, MappingRecord]] = []
     forbidden = {
         text,
@@ -288,6 +305,35 @@ def transform_text(
         original_cost=sum(_safe_cost(active_scorer, text[item.start : item.end]) for item in spans),
         substitute_cost=sum(_safe_cost(active_scorer, item.substitute) for _, item in replacements),
     )
+
+
+def _known_original_spans(text: str, mappings: MappingTable) -> tuple[DetectedSpan, ...]:
+    candidates = sorted(mappings.records, key=lambda item: -len(item.original))
+    selected: list[DetectedSpan] = []
+    for record in candidates:
+        if record.entity_type == "EMAIL_ADDRESS" and "@" in record.original:
+            local, domain = record.original.rsplit("@", 1)
+            pattern = re.compile(re.escape(local) + r"@(?i:" + re.escape(domain) + r")")
+        elif record.entity_type in {
+            "API_KEY", "ACCESS_TOKEN", "AUTH_HEADER", "DATABASE_CREDENTIAL", "JWT",
+            "PASSWORD", "PRIVATE_KEY", "SECRET", "PHONE_NUMBER",
+            "CREDIT_CARD", "IBAN_CODE",
+        }:
+            pattern = re.compile(re.escape(record.original))
+        else:
+            parts = re.split(r"\s+", record.original.strip())
+            pattern = re.compile(r"\s+".join(re.escape(part) for part in parts), re.IGNORECASE)
+        for match in pattern.finditer(text):
+            if normalize_entity(match.group(0), record.entity_type) != record.normalized:
+                continue
+            if any(match.start() < span.end and span.start < match.end() for span in selected):
+                continue
+            selected.append(
+                DetectedSpan(
+                    match.start(), match.end(), record.entity_type, 1.0, "en", "known-mapping"
+                )
+            )
+    return tuple(selected)
 
 
 def restore_text(text: str, mappings: MappingTable) -> str:

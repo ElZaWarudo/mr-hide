@@ -95,3 +95,47 @@ def test_cleanup_failure_blocks_before_new_vault_creation(
         )
 
     assert not (tmp_path / "vaults" / f"{NEW_ID}.vault").exists()
+
+
+def test_damaged_unrelated_vault_does_not_block_new_conversation(tmp_path: Path) -> None:
+    vaults = repository(tmp_path)
+    vaults.create(ConversationState.new(STALE_ID, mode=SubstitutionMode.ALIAS, now=NOW))
+    (tmp_path / "vaults" / f"{STALE_ID}.vault").write_bytes(b"damaged")
+
+    prepared = ResponsesRuntime.prepare(
+        repository=vaults,
+        registry=BindingRegistry(tmp_path),
+        detector=NoopDetector(),
+        policy=ToolPolicy.DEFAULT,
+        resume_identity=None,
+        clock=lambda: NOW,
+        identifier_factory=lambda: NEW_ID,
+    )
+
+    assert prepared.conversation_id == NEW_ID
+    assert (tmp_path / "vaults" / f"{STALE_ID}.vault").read_bytes() == b"damaged"
+
+
+def test_expired_vault_cleanup_prunes_only_its_native_binding(tmp_path: Path) -> None:
+    vaults = repository(tmp_path)
+    registry = BindingRegistry(tmp_path)
+    vaults.create(
+        ConversationState.new(STALE_ID, mode=SubstitutionMode.ALIAS, now=NOW - timedelta(days=30))
+    )
+    vaults.create(ConversationState.new(ACTIVE_ID, mode=SubstitutionMode.ALIAS, now=NOW))
+    registry.bind("claude", str(STALE_ID), STALE_ID)
+    registry.bind("claude", str(ACTIVE_ID), ACTIVE_ID)
+
+    MessagesRuntime.prepare(
+        repository=vaults,
+        registry=registry,
+        detector=NoopDetector(),
+        policy=ToolPolicy.DEFAULT,
+        resume_identity=None,
+        clock=lambda: NOW,
+        identifier_factory=lambda: NEW_ID,
+        native_identifier_factory=lambda: NATIVE_ID,
+    )
+
+    assert registry.lookup("claude", str(STALE_ID)) is None
+    assert registry.lookup("claude", str(ACTIVE_ID)) == ACTIVE_ID

@@ -1,9 +1,9 @@
 # Client compatibility
 
 This page is generated from `src/mr_hide/compatibility.toml`.
-These ranges are release-supported by the recorded Windows/Linux compatibility matrix.
+Candidate ranges are not release support until the current source passes every required Windows/Linux cell.
 
-## Supported ranges
+## Candidate ranges
 
 | Client | Range | Evidence status | Note |
 |---|---|---|---|

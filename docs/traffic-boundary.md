@@ -6,7 +6,8 @@ Mr Hide mediates only the declared inference routes below:
 - `/v1/messages/count_tokens`
 - `/v1/responses`
 
-The listener binds only to loopback. Requests preserve bodies, raw query bytes,
+The listener binds only to loopback. Protected routes rewrite eligible JSON fields;
+raw forwarding preserves bodies. Requests preserve raw query bytes,
 status,
 stream order, and end-to-end headers after hop-by-hop filtering. OpenAI
 Responses and Anthropic Messages request/response JSON and SSE use explicit

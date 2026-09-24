@@ -31,6 +31,43 @@ def test_repeated_entity_uses_one_mapping_and_round_trips() -> None:
     assert restore_text(result.text, result.mappings) == text
 
 
+def test_known_original_is_protected_when_later_detection_misses_it() -> None:
+    first = transform_text("Alice", (detected("Alice", "Alice"),))
+
+    later = transform_text("Ask Alice again", (), first.mappings)
+
+    assert later.text == f"Ask {first.text} again"
+    assert later.mappings == first.mappings
+
+
+def test_known_normalized_variant_is_protected_without_new_detection() -> None:
+    first = transform_text("Alice", (detected("Alice", "Alice"),))
+
+    later = transform_text("Ask ALICE again", (), first.mappings)
+
+    assert later.text == f"Ask {first.text} again"
+
+
+def test_known_email_domain_variant_is_protected_without_new_detection() -> None:
+    email = "Alice@Example.com"
+    first = transform_text(email, (detected(email, email, "EMAIL_ADDRESS"),))
+
+    later = transform_text("Alice@example.COM", (), first.mappings)
+
+    assert later.text == first.text
+
+
+def test_larger_new_secret_detection_is_not_hidden_by_known_original() -> None:
+    first = transform_text("Alice", (detected("Alice", "Alice"),))
+    text = "key-Alice-secret"
+
+    later = transform_text(text, (detected(text, text, "API_KEY"),), first.mappings)
+
+    assert "Alice" not in later.text
+    assert "secret" not in later.text
+    assert restore_text(later.text, later.mappings) == text
+
+
 def test_normalized_variant_reuses_first_seen_canonical_original() -> None:
     first = transform_text("Alice", (detected("Alice", "Alice"),))
     second = transform_text("ALICE", (detected("ALICE", "ALICE"),), first.mappings)
